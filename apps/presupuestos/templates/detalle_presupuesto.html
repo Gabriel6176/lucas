@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalle del Presupuesto{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="text-center">Detalle del Presupuesto</h1>
+    <p class="text-align-left">Presupuesto Nro: {{ presupuesto.numero }}</p>  
+    <p class="text-align-left">Cliente: {{ presupuesto.cliente }}</p>
+
+    {% if items %}
+        <table class="table table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Tipo</th>
+                    <th scope="col">Cantidad</th>
+                    <th scope="col">Ancho</th>
+                    <th scope="col">Alto</th>
+                    <th scope="col">Color</th>
+                    <th scope="col">Revestimiento</th>
+                    <th scope="col">Costo</th>
+                    <th scope="col">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in items_con_costos %}
+                    <tr>
+                        <th scope="row">{{ entry.item.id }}</th>
+                        <td>{{ entry.item.tipo.detalle }}</td>
+                        <td>{{ entry.item.cantidad }}</td>
+                        <td>{{ entry.item.ancho }}</td>
+                        <td>{{ entry.item.alto }}</td>
+                        <td>{{ entry.item.color.nombre }}</td>
+                        <td>{{ entry.item.revestimiento.nombre }}</td>
+                        <td>${{ entry.costo }}</td>
+                        <td>
+                            <a href="{% url 'editar_item' entry.item.id %}" class="btn btn-warning btn-sm">Editar</a>
+                            <a href="{% url 'eliminar_item' entry.item.id %}" class="btn btn-danger btn-sm" 
+                            onclick="return confirm('¿Estás seguro de que deseas eliminar este ítem?')">Eliminar</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    
+    
+        <div class="text-right mt-4">
+            <h3>Total: ${{ total|floatformat:2 }}</h3>
+        </div>
+    {% else %}
+        <p class="text-center">No hay ítems asociados a este presupuesto.</p>
+    {% endif %}
+
+    <div class="mt-4">
+        <a href="{% url 'nuevo_item' presupuesto.numero %}" class="btn btn-primary">+ Agregar Nuevo Ítem</a>
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary">Volver al Dashboard</a>
+    </div>
+</div>
+{% endblock %}
