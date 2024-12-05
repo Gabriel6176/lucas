@@ -91,6 +91,7 @@ class Item(models.Model):
     cantidad = models.PositiveIntegerField()  # Cantidad del ítem
     ancho = models.DecimalField(max_digits=10, decimal_places=2)  # Ancho en unidades
     alto = models.DecimalField(max_digits=10, decimal_places=2)  # Alto en unidades
+    ancho_hoja = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)  # Ancho de hoja en unidades
     tipo = models.ForeignKey(Tipo, on_delete=models.CASCADE)  # Tipo de ítem (ventana, puerta, etc.)
     color = models.ForeignKey(Color, on_delete=models.CASCADE)  # Color del ítem
     revestimiento = models.ForeignKey(Revestimiento, on_delete=models.CASCADE)  # Tipo de revestimiento
@@ -108,6 +109,7 @@ class Item(models.Model):
             formula_context = {
                 'ANCHO': self.ancho,
                 'ALTO': self.alto,
+                'ANCHO_HOJA': self.ancho_hoja or 0,  # Considerar el Ancho Hoja si está presente
                 'TIPO': self.tipo.numero,
                 'DESPERDICIO': self.desperdicio / 100,
             }
@@ -142,3 +144,4 @@ class Item(models.Model):
 
     def __str__(self):
         return f"Item {self.presupuesto.numero} - {self.tipo.detalle}"
+
