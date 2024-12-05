@@ -30,6 +30,8 @@
                         <td>{{ presupuesto.fecha|date:"d/m/Y" }}</td>
                         <td>
                             <a href="{% url 'detalle_presupuesto' presupuesto.numero %}" class="btn btn-info btn-sm">Ver</a>
+                            <a href="{% url 'eliminar_presupuesto' presupuesto.numero %}" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar este presupuesto?')">Eliminar
+                            </a>
                         </td>
                     </tr>
                 {% endfor %}

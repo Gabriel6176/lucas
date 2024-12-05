@@ -15,7 +15,18 @@ class ItemForm(forms.ModelForm):
         model = Item
         fields = ['cantidad', 'ancho', 'alto', 'tipo', 'color', 'revestimiento']
         widgets = {
+            'cantidad': forms.NumberInput(attrs={'class': 'form-control', 'step': '1', 'placeholder': 'Ingrese la cantidad'}),
+            'ancho': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': 'Ingrese el ancho'}),
+            'alto': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': 'Ingrese el alto'}),
             'tipo': forms.Select(attrs={'class': 'form-control', 'placeholder': 'Cargue el tipo'}),
             'color': forms.Select(attrs={'class': 'form-control', 'placeholder': 'Elija Color'}),
             'revestimiento': forms.Select(attrs={'class': 'form-control', 'placeholder': 'Elija Revestimiento'}),
+        }
+        labels = {
+            'cantidad': 'Cantidad',
+            'ancho': 'Ancho (cm)',
+            'alto': 'Alto (cm)',
+            'tipo': 'Tipo',
+            'color': 'Color',
+            'revestimiento': 'Revestimiento',
         }

@@ -27,4 +27,7 @@ urlpatterns = [
     # Eliminar item
     path('item/<int:item_id>/eliminar/', presupuestos_views.eliminar_item, name='eliminar_item'),
 
+    # Eliminar Presupuesto
+    path('presupuesto/<int:presupuesto_id>/eliminar/', presupuestos_views.eliminar_presupuesto, name='eliminar_presupuesto'),
+
 ]

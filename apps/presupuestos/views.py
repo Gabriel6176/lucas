@@ -64,16 +64,27 @@ def editar_item(request, item_id):
     """
     Vista para editar un ítem existente.
     """
-    item = get_object_or_404(Item, id=item_id)
+    item = get_object_or_404(Item, id=item_id)  # Obtén el ítem a editar
     if request.method == 'POST':
-        form = ItemForm(request.POST, instance=item)
+        form = ItemForm(request.POST, instance=item)  # Inicializa el formulario con el ítem existente
         if form.is_valid():
             form.save()
             return redirect('detalle_presupuesto', presupuesto_id=item.presupuesto.numero)
     else:
-        form = ItemForm(instance=item)
+        form = ItemForm(instance=item)  # Pasa el ítem como instancia para prellenar el formulario
 
-    return render(request, 'nuevo_item.html', {'form': form, 'presupuesto': item.presupuesto})
+    # Agregar datos adicionales al contexto para rellenar los menús desplegables
+    tipos = Tipo.objects.all()
+    colores = Color.objects.all()
+    revestimientos = Revestimiento.objects.all()
+
+    return render(request, 'nuevo_item.html', {
+        'form': form,
+        'presupuesto': item.presupuesto,  # El presupuesto asociado al ítem
+        'tipos': tipos,
+        'colores': colores,
+        'revestimientos': revestimientos,
+    })
 
 
 
@@ -87,6 +98,14 @@ def eliminar_item(request, item_id):
     item.delete()
     return redirect('detalle_presupuesto', presupuesto_id=presupuesto_id)
 
+@login_required
+def eliminar_presupuesto(request, presupuesto_id):
+    """
+    Vista para eliminar un presupuesto.
+    """
+    presupuesto = get_object_or_404(Presupuesto, numero=presupuesto_id)  # Cambia a `Presupuesto` y usa `numero`
+    presupuesto.delete()  # Esto eliminará el presupuesto y en cascada todos los ítems asociados
+    return redirect('dashboard')  # Redirige directamente al dashboard
 
 
 @login_required
