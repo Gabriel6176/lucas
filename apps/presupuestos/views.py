@@ -42,6 +42,7 @@ def nuevo_item(request, presupuesto_id):
             item = form.save(commit=False)
             item.presupuesto = presupuesto
             item.save()
+            item.calcular_insumos()
             return redirect('detalle_presupuesto', presupuesto_id=presupuesto.numero)
     else:
         form = ItemForm()
@@ -68,7 +69,13 @@ def editar_item(request, item_id):
     if request.method == 'POST':
         form = ItemForm(request.POST, instance=item)  # Inicializa el formulario con el ítem existente
         if form.is_valid():
-            form.save()
+            item = form.save()
+            
+            # Eliminar los insumos previamente calculados
+            DetalleInsumo.objects.filter(item=item).delete()
+
+            item.calcular_insumos()
+            
             return redirect('detalle_presupuesto', presupuesto_id=item.presupuesto.numero)
     else:
         form = ItemForm(instance=item)  # Pasa el ítem como instancia para prellenar el formulario
@@ -131,3 +138,12 @@ def detalle_presupuesto(request, presupuesto_id):
         'items_con_costos': items_con_costos,
         'total': total,
     })
+
+@login_required
+def detalle_insumos(request, item_id):
+    """
+    Vista para mostrar los insumos asociados a un ítem.
+    """
+    item = get_object_or_404(Item, id=item_id)
+    detalles = DetalleInsumo.objects.filter(item=item)
+    return render(request, 'detalle_insumos.html', {'item': item, 'detalles': detalles})

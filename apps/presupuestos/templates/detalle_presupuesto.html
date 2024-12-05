@@ -38,6 +38,8 @@
                             <a href="{% url 'editar_item' entry.item.id %}" class="btn btn-warning btn-sm">Editar</a>
                             <a href="{% url 'eliminar_item' entry.item.id %}" class="btn btn-danger btn-sm" 
                             onclick="return confirm('¿Estás seguro de que deseas eliminar este ítem?')">Eliminar</a>
+                            <a href="{% url 'detalle_insumos' entry.item.id %}" class="btn btn-info btn-sm">Ver Insumos</a>
+
                         </td>
                     </tr>
                 {% endfor %}

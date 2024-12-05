@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
 
-{% block title %}Nuevo Ítem{% endblock %}
+{% block title %}{{ item.id|default:"Nuevo" }} Ítem{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    <h1 class="text-center">Agregar Nuevo Ítem</h1>
+    <h1 class="text-center">{{ item.id|default:"Agregar Nuevo" }} Ítem</h1>
     <div class="row justify-content-center">
         <div class="col-md-6">
             <form id="itemForm" method="post" onsubmit="return validateForm()">
@@ -13,56 +13,68 @@
                     <div class="col-md-6">
                         <div class="form-group mb-3">
                             <label for="cantidad">Cantidad</label>
-                            <input type="number" id="cantidad" name="cantidad" class="form-control" required>
+                            <input type="number" id="cantidad" name="cantidad" class="form-control" 
+                                   value="{{ form.cantidad.value }}" required>
                         </div>
                         <div class="form-group mb-3">
                             <label for="color">Color</label>
                             <select id="color" name="color" class="form-control" required>
-                                <option value="" disabled selected>Elija Color</option>
+                                <option value="" disabled>Elija Color</option>
                                 {% for color in colores %}
-                                    <option value="{{ color.id }}">{{ color.nombre }}</option>
+                                    <option value="{{ color.id }}"{% if color.id == form.color.value %}selected{% endif %}>
+                                        {{ color.nombre }}
+                                    </option>
                                 {% endfor %}
                             </select>
                         </div>
                         <div class="form-group mb-3">
                             <label for="tipo">Tipo</label>
                             <select id="tipo" name="tipo" class="form-control" required onchange="toggleAnchoHoja()">
-                                <option value="" disabled selected>Cargue el tipo</option>
+                                <option value="" disabled>Cargue el tipo</option>
                                 {% for tipo in tipos %}
-                                    <option value="{{ tipo.id }}">{{ tipo.detalle }}</option>
+                                    <option value="{{ tipo.id }}"{% if tipo.id == form.tipo.value %}selected{% endif %}>
+                                        {{ tipo.detalle }}
+                                    </option>
                                 {% endfor %}
                             </select>
                         </div>
                         <div class="form-group mb-3">
                             <label for="revestimiento">Revestimiento</label>
                             <select id="revestimiento" name="revestimiento" class="form-control" required>
-                                <option value="" disabled selected>Elija Revestimiento</option>
+                                <option value="" disabled>Elija Revestimiento</option>
                                 {% for revestimiento in revestimientos %}
-                                    <option value="{{ revestimiento.id }}">{{ revestimiento.nombre }}</option>
+                                    <option value="{{ revestimiento.id }}" 
+                                            {% if revestimiento.id == form.revestimiento.value %}selected{% endif %}>
+                                        {{ revestimiento.nombre }}
+                                    </option>
                                 {% endfor %}
                             </select>
                         </div>
-                        
                     </div>
                     <div class="col-md-6">
                         <div class="form-group mb-3">
                             <label for="ancho">Ancho (cm)</label>
-                            <input type="number" step="0.01" id="ancho" name="ancho" class="form-control" required>
+                            <input type="number" step="0.01" id="ancho" name="ancho" class="form-control" 
+                                   value="{{ form.ancho.value }}" required>
                         </div>
                         <div class="form-group mb-3">
                             <label for="alto">Alto (cm)</label>
-                            <input type="number" step="0.01" id="alto" name="alto" class="form-control" required>
+                            <input type="number" step="0.01" id="alto" name="alto" class="form-control" 
+                                   value="{{ form.alto.value }}" required>
                         </div>
-                        
-                        <div class="form-group mb-3" id="anchoHojaGroup" style="display: none;">
+                        <div class="form-group mb-3" id="anchoHojaGroup" 
+                             style="display: {% if form.ancho_hoja.value %}block{% else %}none{% endif %};">
                             <label for="ancho_hoja">Ancho Hoja (cm)</label>
-                            <input type="number" step="0.01" id="ancho_hoja" name="ancho_hoja" class="form-control">
+                            <input type="number" step="0.01" id="ancho_hoja" name="ancho_hoja" class="form-control" 
+                                   value="{{ form.ancho_hoja.value }}">
                         </div>
-                        
-                        
+                        <div class="form-group mb-3">
+                            <label for="desperdicio">Desperdicio (%)</label>
+                            <input type="number" step="0.01" id="desperdicio" name="desperdicio" class="form-control" 
+                                   value="{{ form.desperdicio.value|default:"0.0" }}" required>
+                        </div>
                     </div>
                 </div>
-                
                 <div class="d-flex justify-content-end">
                     <a href="{% url 'detalle_presupuesto' presupuesto.numero %}" class="btn btn-secondary me-2">Volver</a>
                     <button type="submit" class="btn btn-primary">Guardar Ítem</button>
@@ -73,10 +85,8 @@
 </div>
 
 <script>
-    // Lista de IDs de tipos que requieren el campo Ancho Hoja
-    const tiposConAnchoHoja = [9, 10, 11, 12]; // Reemplaza con los IDs correspondientes
+    const tiposConAnchoHoja = [9, 10, 11, 12];
 
-    // Función para mostrar u ocultar el campo Ancho Hoja según el tipo seleccionado
     function toggleAnchoHoja() {
         const tipo = document.getElementById('tipo').value;
         const anchoHojaGroup = document.getElementById('anchoHojaGroup');
@@ -85,11 +95,10 @@
             anchoHojaGroup.style.display = 'block';
         } else {
             anchoHojaGroup.style.display = 'none';
-            document.getElementById('ancho_hoja').value = ''; // Limpia el valor
+            document.getElementById('ancho_hoja').value = '';
         }
     }
 
-    // Función para validar el formulario
     function validateForm() {
         const tipo = document.getElementById('tipo').value;
         const anchoHoja = document.getElementById('ancho_hoja').value;
@@ -98,8 +107,11 @@
             alert('El campo "Ancho Hoja" es obligatorio para el tipo seleccionado.');
             return false;
         }
-
-        return true; // Permite el envío si no hay problemas
+        return true;
     }
+
+    // Inicializa el estado del campo Ancho Hoja al cargar la página
+    document.addEventListener('DOMContentLoaded', toggleAnchoHoja);
 </script>
 {% endblock %}
+

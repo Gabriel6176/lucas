@@ -1,6 +1,7 @@
 from django.db import models
 from sympy import sympify
-
+from decimal import Decimal, ROUND_HALF_UP
+from sympy import N
 
 class Lugar(models.Model):
     """
@@ -100,13 +101,29 @@ class Item(models.Model):
     def calcular_insumos(self):
         """
         Calcula la cantidad y el costo de cada insumo asociado al ítem.
+        Evalúa únicamente los insumos con el mismo color que el ítem.
         """
-        insumos = Insumo.objects.all()  # Obtén todos los insumos
+        # Filtrar insumos por color
+        if self.color.id in [1, 2, 3]:  # Si el color del ítem es "Blanco", "Simil Madera" o "Negro"
+            insumos = Insumo.objects.filter(color=self.color)
+            print(f"Filtrando insumos para color ID {self.color.id}: {insumos}")
+        else:  # Otros colores o sin color asociado
+            insumos = Insumo.objects.filter(color__isnull=True)  # Solo insumos sin color asociado
+            print(f"Filtrando insumos sin color asociado: {insumos}")
+
+        # Verificar qué insumos se obtuvieron
+        if not insumos.exists():
+            print(f"No se encontraron insumos para el color ID {self.color.id}.")
+        else:
+            for insumo in insumos:
+                print(f"Insumo encontrado: {insumo.codigo} - {insumo.descripcion}")
+
         detalles = []
 
         for insumo in insumos:
             # Evaluar la fórmula del insumo de forma segura
             formula_context = {
+                'CANTIDAD': self.cantidad,
                 'ANCHO': self.ancho,
                 'ALTO': self.alto,
                 'ANCHO_HOJA': self.ancho_hoja or 0,  # Considerar el Ancho Hoja si está presente
@@ -115,24 +132,31 @@ class Item(models.Model):
             }
             try:
                 formula = sympify(insumo.formula)  # Convierte la fórmula en una expresión simbólica
-                cantidad = formula.evalf(subs=formula_context)  # Evalúa la fórmula con el contexto
-            except Exception:
-                cantidad = 0  # Si hay un error en la fórmula, asumimos 0
+                cantidad = formula.evalf(subs=formula_context) * self.cantidad # Evalúa la fórmula con el contexto
+                cantidad = float(cantidad)  # Convertir siempre a un valor numérico estándar de Python
+            except Exception as e:
+                print(f"Error evaluando fórmula para insumo {insumo.codigo}: {e}")
+                cantidad = 0
 
+            # Solo agregar detalles si la cantidad es válida y mayor a 0
             if cantidad > 0:
-                precio_total = cantidad * insumo.precio
+                precio_total = Decimal(cantidad) * insumo.precio
+                print(f"Insumo {insumo.codigo}: cantidad={cantidad}, precio_total={precio_total}")
                 detalle = DetalleInsumo(
                     presupuesto=self.presupuesto,
                     item=self,
                     insumo=insumo,
-                    cantidad_usada=cantidad,
+                    cantidad_usada=Decimal(cantidad),
                     precio_unitario=insumo.precio,
                     precio_total=precio_total,
                 )
                 detalles.append(detalle)
+            else:
+                print(f"No se generaron detalles para insumo {insumo.codigo}. Cantidad evaluada: {cantidad}")
 
         # Guardar los detalles en la base de datos
         DetalleInsumo.objects.bulk_create(detalles)
+
 
     def calcular_costo(self):
         """

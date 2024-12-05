@@ -13,6 +13,25 @@ class PresupuestoForm(forms.ModelForm):
 class ItemForm(forms.ModelForm):
     class Meta:
         model = Item
+        fields = ['cantidad', 'ancho', 'alto', 'ancho_hoja', 'tipo', 'color', 'revestimiento', 'desperdicio']
+        widgets = {
+            'cantidad': forms.NumberInput(attrs={'class': 'form-control'}),
+            'ancho': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'alto': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'ancho_hoja': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'tipo': forms.Select(attrs={'class': 'form-control'}),
+            'color': forms.Select(attrs={'class': 'form-control'}),
+            'revestimiento': forms.Select(attrs={'class': 'form-control'}),
+            'desperdicio': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        }
+        labels = {
+            'desperdicio': 'Desperdicio (%)',
+        }
+
+'''
+class ItemForm(forms.ModelForm):
+    class Meta:
+        model = Item
         fields = ['cantidad', 'ancho', 'alto', 'tipo', 'color', 'revestimiento']
         widgets = {
             'cantidad': forms.NumberInput(attrs={'class': 'form-control', 'step': '1', 'placeholder': 'Ingrese la cantidad'}),
@@ -30,3 +49,4 @@ class ItemForm(forms.ModelForm):
             'color': 'Color',
             'revestimiento': 'Revestimiento',
         }
+'''

@@ -2,6 +2,7 @@ from django.urls import path
 from django.contrib.auth import views as auth_views
 from apps.presupuestos import views as presupuestos_views
 
+
 urlpatterns = [
     # Ruta para el login
     path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
@@ -29,5 +30,9 @@ urlpatterns = [
 
     # Eliminar Presupuesto
     path('presupuesto/<int:presupuesto_id>/eliminar/', presupuestos_views.eliminar_presupuesto, name='eliminar_presupuesto'),
+
+
+    path('item/<int:item_id>/detalle_insumos/', presupuestos_views.detalle_insumos, name='detalle_insumos'),
+
 
 ]
