@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-
+{% load humanize %}
 {% block title %}Detalle de Insumos{% endblock %}
 
 {% block content %}
@@ -7,7 +7,8 @@
     <h1 class="text-center">Detalle de Insumos</h1>
     <p>Ítem: {{ item.tipo.detalle }}</p>
     <p>Cantidad: {{ item.cantidad }}</p>
-    <p>Dimensiones: {{ item.ancho }} x {{ item.alto }}</p>
+    <p>Dimensiones (cm): {{ item.ancho }} x {{ item.alto }}</p>
+    <p>Ancho Hoja Patagonica (cm): {{ item.ancho_hoja }}</p>
 
     {% if detalles %}
         <table class="table table-striped">
@@ -24,8 +25,8 @@
                 <tr>
                     <td>{{ detalle.insumo.codigo }} - {{ detalle.insumo.descripcion }}</td>
                     <td>{{ detalle.cantidad_usada }}</td>
-                    <td>${{ detalle.precio_unitario }}</td>
-                    <td>${{ detalle.precio_total }}</td>
+                    <td>${{ detalle.precio_unitario|intcomma }}</td>
+                    <td>${{ detalle.precio_total|intcomma }}</td>
                 </tr>
                 {% endfor %}
             </tbody>

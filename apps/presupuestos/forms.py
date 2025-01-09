@@ -13,12 +13,13 @@ class PresupuestoForm(forms.ModelForm):
 class ItemForm(forms.ModelForm):
     class Meta:
         model = Item
-        fields = ['cantidad', 'ancho', 'alto', 'ancho_hoja', 'tipo', 'color', 'revestimiento', 'desperdicio']
+        fields = ['cantidad', 'ancho', 'alto', 'ancho_hoja', 'alto_lama', 'tipo', 'color', 'revestimiento', 'desperdicio']
         widgets = {
             'cantidad': forms.NumberInput(attrs={'class': 'form-control'}),
             'ancho': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'alto': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'ancho_hoja': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'alto_lama': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'tipo': forms.Select(attrs={'class': 'form-control'}),
             'color': forms.Select(attrs={'class': 'form-control'}),
             'revestimiento': forms.Select(attrs={'class': 'form-control'}),
@@ -26,8 +27,20 @@ class ItemForm(forms.ModelForm):
         }
         labels = {
             'desperdicio': 'Desperdicio (%)',
+            'alto_lama': 'Alto Lama (cm)',
         }
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        revestimiento = cleaned_data.get('revestimiento')
+        alto_lama = cleaned_data.get('alto_lama')
 
+        # Validar que "Alto Lama" sea obligatorio si el revestimiento es "Lama" (id=6)
+        if revestimiento and revestimiento.id == 6 and not alto_lama:
+            self.add_error('alto_lama', 'Debe ingresar el valor de Alto Lama cuando el revestimiento es Lama.')
+
+        return cleaned_data
+    
 '''
 class ItemForm(forms.ModelForm):
     class Meta:

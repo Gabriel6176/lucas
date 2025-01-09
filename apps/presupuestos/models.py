@@ -1,7 +1,7 @@
 from django.db import models
 from sympy import sympify
 from decimal import Decimal, ROUND_HALF_UP
-from sympy import N
+from sympy import N,Piecewise
 
 class Lugar(models.Model):
     """
@@ -93,10 +93,13 @@ class Item(models.Model):
     ancho = models.DecimalField(max_digits=10, decimal_places=2)  # Ancho en unidades
     alto = models.DecimalField(max_digits=10, decimal_places=2)  # Alto en unidades
     ancho_hoja = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)  # Ancho de hoja en unidades
+    alto_lama = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     tipo = models.ForeignKey(Tipo, on_delete=models.CASCADE)  # Tipo de ítem (ventana, puerta, etc.)
     color = models.ForeignKey(Color, on_delete=models.CASCADE)  # Color del ítem
     revestimiento = models.ForeignKey(Revestimiento, on_delete=models.CASCADE)  # Tipo de revestimiento
     desperdicio = models.DecimalField(max_digits=5, decimal_places=2, default=0.0)  # Porcentaje de desperdicio
+
+    
 
     def calcular_insumos(self):
         """
@@ -106,42 +109,48 @@ class Item(models.Model):
         # Filtrar insumos por color
         if self.color.id in [1, 2, 3]:  # Si el color del ítem es "Blanco", "Simil Madera" o "Negro"
             insumos = Insumo.objects.filter(color=self.color)
-            print(f"Filtrando insumos para color ID {self.color.id}: {insumos}")
+            print(f"Filtrando insumos para color ID {self.color.id}: {list(insumos)}")
         else:  # Otros colores o sin color asociado
-            insumos = Insumo.objects.filter(color__isnull=True)  # Solo insumos sin color asociado
-            print(f"Filtrando insumos sin color asociado: {insumos}")
+            insumos = Insumo.objects.filter(color__isnull=True)
+            print(f"Filtrando insumos sin color asociado: {list(insumos)}")
 
-        # Verificar qué insumos se obtuvieron
         if not insumos.exists():
             print(f"No se encontraron insumos para el color ID {self.color.id}.")
-        else:
-            for insumo in insumos:
-                print(f"Insumo encontrado: {insumo.codigo} - {insumo.descripcion}")
+            return
 
         detalles = []
 
         for insumo in insumos:
-            # Evaluar la fórmula del insumo de forma segura
             formula_context = {
-                'CANTIDAD': self.cantidad,
-                'ANCHO': self.ancho,
-                'ALTO': self.alto,
-                'ANCHO_HOJA': self.ancho_hoja or 0,  # Considerar el Ancho Hoja si está presente
-                'TIPO': self.tipo.numero,
-                'DESPERDICIO': self.desperdicio / 100,
+                'CANTIDAD': float(self.cantidad),
+                'ANCHO': float(self.ancho)/100,
+                'ALTO': float(self.alto)/100,
+                'ANCHO_HOJA': float(self.ancho_hoja or 0)/100,
+                'TIPO': int(self.tipo.numero),
+                'DESPERDICIO': float(self.desperdicio) / 100,
+                # Agregar el ID del revestimiento al contexto
+                'REVESTIMIENTO': int(self.revestimiento.id),  
+                # Determinar el valor de ALTO_LAMA según el revestimiento
+                'ALTO_LAMA': (float(self.alto)/100 if self.revestimiento.id == 6 else float(self.alto_lama or 0) if self.revestimiento.id == 8 else 0),
             }
+
+            # Depuración de la fórmula y contexto
+            print(f"Evaluando fórmula para insumo {insumo.codigo}")
+            print(f"Fórmula original: {insumo.formula}")
+            print(f"Contexto: {formula_context}")
+
             try:
-                formula = sympify(insumo.formula)  # Convierte la fórmula en una expresión simbólica
-                cantidad = formula.evalf(subs=formula_context) * self.cantidad # Evalúa la fórmula con el contexto
-                cantidad = float(cantidad)  # Convertir siempre a un valor numérico estándar de Python
+                # Evaluar la fórmula manualmente
+                cantidad = eval(insumo.formula, {}, formula_context)
+                cantidad = max(0, round(float(cantidad), 2))  # Asegurarse de que la cantidad sea válida
+                print(f"Cantidad calculada: {cantidad}")
             except Exception as e:
                 print(f"Error evaluando fórmula para insumo {insumo.codigo}: {e}")
                 cantidad = 0
 
-            # Solo agregar detalles si la cantidad es válida y mayor a 0
             if cantidad > 0:
                 precio_total = Decimal(cantidad) * insumo.precio
-                print(f"Insumo {insumo.codigo}: cantidad={cantidad}, precio_total={precio_total}")
+                print(f"Precio total calculado para insumo {insumo.codigo}: {precio_total}")
                 detalle = DetalleInsumo(
                     presupuesto=self.presupuesto,
                     item=self,
@@ -154,8 +163,9 @@ class Item(models.Model):
             else:
                 print(f"No se generaron detalles para insumo {insumo.codigo}. Cantidad evaluada: {cantidad}")
 
-        # Guardar los detalles en la base de datos
         DetalleInsumo.objects.bulk_create(detalles)
+        print(f"Detalles de insumos generados: {detalles}")
+
 
 
     def calcular_costo(self):

@@ -74,8 +74,8 @@ def editar_item(request, item_id):
             # Eliminar los insumos previamente calculados
             DetalleInsumo.objects.filter(item=item).delete()
 
+            # Recalcular insumos
             item.calcular_insumos()
-            
             return redirect('detalle_presupuesto', presupuesto_id=item.presupuesto.numero)
     else:
         form = ItemForm(instance=item)  # Pasa el ítem como instancia para prellenar el formulario

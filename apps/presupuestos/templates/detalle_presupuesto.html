@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load humanize %}
 
 {% block title %}Detalle del Presupuesto{% endblock %}
 
@@ -14,13 +15,13 @@
                 <tr>
                     <th scope="col">#</th>
                     <th scope="col">Tipo</th>
-                    <th scope="col">Cantidad</th>
-                    <th scope="col">Ancho</th>
-                    <th scope="col">Alto</th>
-                    <th scope="col">Color</th>
-                    <th scope="col">Revestimiento</th>
-                    <th scope="col">Costo</th>
-                    <th scope="col">Acciones</th>
+                    <th class="text-center" scope="col">Cantidad</th>
+                    <th class="text-center" scope="col">Ancho</th>
+                    <th class="text-center" scope="col">Alto</th>
+                    <th class="text-center" scope="col">Color</th>
+                    <th class="text-center" scope="col">Revestimiento</th>
+                    <th class="text-center" scope="col">Costo</th>
+                    <th class="text-center" scope="col">Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -28,13 +29,13 @@
                     <tr>
                         <th scope="row">{{ entry.item.id }}</th>
                         <td>{{ entry.item.tipo.detalle }}</td>
-                        <td>{{ entry.item.cantidad }}</td>
-                        <td>{{ entry.item.ancho }}</td>
-                        <td>{{ entry.item.alto }}</td>
-                        <td>{{ entry.item.color.nombre }}</td>
-                        <td>{{ entry.item.revestimiento.nombre }}</td>
-                        <td>${{ entry.costo }}</td>
-                        <td>
+                        <td class="text-center">{{ entry.item.cantidad }}</td>
+                        <td class="text-center">{{ entry.item.ancho }}</td>
+                        <td class="text-center">{{ entry.item.alto }}</td>
+                        <td class="text-center">{{ entry.item.color.nombre }}</td>
+                        <td class="text-center">{{ entry.item.revestimiento.nombre }}</td>
+                        <td class="text-end">${{ entry.costo|intcomma }}</td>
+                        <td class="text-center">
                             <a href="{% url 'editar_item' entry.item.id %}" class="btn btn-warning btn-sm">Editar</a>
                             <a href="{% url 'eliminar_item' entry.item.id %}" class="btn btn-danger btn-sm" 
                             onclick="return confirm('¿Estás seguro de que deseas eliminar este ítem?')">Eliminar</a>
