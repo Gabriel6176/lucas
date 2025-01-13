@@ -49,7 +49,7 @@
     
     
         <div class="text-right mt-4">
-            <h3>Total: ${{ total|floatformat:2 }}</h3>
+            <h3>Total: ${{ total|intcomma }}</h3>
         </div>
     {% else %}
         <p class="text-center">No hay ítems asociados a este presupuesto.</p>
