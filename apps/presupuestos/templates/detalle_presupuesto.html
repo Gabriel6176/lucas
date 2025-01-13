@@ -4,6 +4,17 @@
 {% block title %}Detalle del Presupuesto{% endblock %}
 
 {% block content %}
+<!-- Sección para mostrar mensajes -->
+{% if messages %}
+    <div class="mt-3">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+<!-- Fin de la sección para mostrar mensajes -->
 <div class="container mt-4">
     <h1 class="text-center">Detalle del Presupuesto</h1>
     

@@ -49,7 +49,7 @@ class Presupuesto(models.Model):
     numero = models.AutoField(primary_key=True)  # Clave primaria definida explícitamente
     cliente = models.CharField(max_length=255)
     lugar = models.ForeignKey('Lugar', on_delete=models.CASCADE)
-    fecha = models.DateTimeField(auto_now_add=True)
+    fecha = models.DateTimeField(auto_now_add=False)
 
     def __str__(self):
         return f"Presupuesto {self.numero} - {self.cliente}"

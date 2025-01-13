@@ -18,6 +18,7 @@
                     <th scope="col">Cliente</th>
                     <th scope="col">Lugar de la Obra</th>
                     <th scope="col">Fecha</th>
+                    <th scope="col">Hora</th>
                     <th scope="col">Acciones</th>
                 </tr>
             </thead>
@@ -28,10 +29,12 @@
                         <td>{{ presupuesto.cliente }}</td>
                         <td>{{ presupuesto.lugar.nombre|default:"No especificado" }}</td>
                         <td>{{ presupuesto.fecha|date:"d/m/Y" }}</td>
+                        <td>{{ presupuesto.fecha|date:"H:i" }}</td>
                         <td>
                             <a href="{% url 'detalle_presupuesto' presupuesto.numero %}" class="btn btn-info btn-sm">Ver</a>
                             <a href="{% url 'eliminar_presupuesto' presupuesto.numero %}" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar este presupuesto?')">Eliminar
                             </a>
+                            <a href="{% url 'recalcular_presupuesto' presupuesto.numero %}" class="btn btn-warning btn-sm" onclick="return confirm('¿Estás seguro de que deseas recalcular los insumos para este presupuesto?')"> Recalcular </a>
                         </td>
                     </tr>
                 {% endfor %}

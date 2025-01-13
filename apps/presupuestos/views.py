@@ -5,6 +5,9 @@ from .models import Presupuesto, Item, Lugar, Tipo, Revestimiento, Color, Detall
 from .forms import PresupuestoForm, ItemForm
 from decimal import Decimal
 from collections import defaultdict
+from django.contrib import messages
+from django.utils.timezone import now
+from django.db.models import Sum
 
 
 @login_required
@@ -175,5 +178,43 @@ def detalle_insumos(request, item_id):
     Vista para mostrar los insumos asociados a un ítem.
     """
     item = get_object_or_404(Item, id=item_id)
-    detalles = DetalleInsumo.objects.filter(item=item)
-    return render(request, 'detalle_insumos.html', {'item': item, 'detalles': detalles})
+    detalles = DetalleInsumo.objects.filter(item=item).order_by('id')
+    
+    # Agrupar por tipo_insumo y sumar los valores
+    resumen_tipo_insumo = (
+        detalles
+        .values('insumo__tipo_insumo__nombre')
+        .annotate(total_valor=Sum('precio_total'))
+        .order_by('insumo__tipo_insumo__id')
+    )
+
+    return render(request, 'detalle_insumos.html', {
+        'item': item,
+        'detalles': detalles,
+        'resumen_tipo_insumo': resumen_tipo_insumo,
+    })
+
+@login_required
+def recalcular_presupuesto(request, presupuesto_id):
+    """
+    Vista para recalcular los insumos de los ítems de un presupuesto específico.
+    """
+    presupuesto = get_object_or_404(Presupuesto, numero=presupuesto_id)  # Obtener el presupuesto
+    items = presupuesto.items.all()  # Obtener todos los ítems del presupuesto
+
+    # Eliminar todos los insumos previamente calculados del presupuesto
+    DetalleInsumo.objects.filter(presupuesto=presupuesto).delete()
+
+    # Recalcular insumos para cada ítem
+    for item in items:
+        item.calcular_insumos()
+
+    # Actualizar la fecha y hora del presupuesto
+    presupuesto.fecha = now()
+    presupuesto.save()
+
+    # Mensaje de éxito
+    messages.success(request, f"Los insumos del presupuesto {presupuesto.numero} se han recalculado correctamente.")
+
+    # Redirigir al detalle del presupuesto
+    return redirect('detalle_presupuesto', presupuesto_id=presupuesto_id)

@@ -6,30 +6,61 @@
 <div class="container mt-4">
     <h1 class="text-center">Detalle de Insumos</h1>
     <br>
-    <div class="container">
-        <div class="row">
-            <div class="col-md-6 row-col-lg-6">
-                <div class="row">
-                    <div class="col-6 text-start fw-bold">TIPO:</div>
-                    <div class="col-6 text-left">{{ item.tipo.detalle }}</div>
+    
+    <!-- Bloque para las tarjetas Resumen y Item -->
+    <div class="row">
+        <!-- Tarjeta Item -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="text-center mb-0">Item</h5>
                 </div>
-                <div class="row">
-                    <div class="col-6 text-start fw-bold">CANTIDAD:</div>
-                    <div class="col-6 text-left">{{ item.cantidad }}</div>
-                </div>
-                <div class="row">
-                    <div class="col-6 text-start fw-bold">ANCHO X ALTO (cm):</div>
-                    <div class="col-6 text-left">{{ item.ancho }} x {{ item.alto }}</div>
-                </div>
-                {% if item.ancho_hoja %}
-                <div class="row">
-                    <div class="col-6 text-start fw-bold">ANCHO Hoja Patagonica (cm):</div>
-                    <div class="col-6 text-left">{{ item.ancho_hoja }}</div>
-                </div>
-                {% endif %}
-            </div>    
+                <div class="card-body">
+                    <div class="row mb-2">
+                        <div class="col-6 text-start fw-bold">TIPO:</div>
+                        <div class="col-6 text-end">{{ item.tipo.detalle }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 text-start fw-bold">CANTIDAD:</div>
+                        <div class="col-6 text-end">{{ item.cantidad }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 text-start fw-bold">ANCHO X ALTO (cm):</div>
+                        <div class="col-6 text-end">{{ item.ancho }} x {{ item.alto }}</div>
+                    </div>
+                    {% if item.ancho_hoja %}
+                    <div class="row">
+                        <div class="col-6 text-start fw-bold">ANCHO Hoja Patagonica (cm):</div>
+                        <div class="col-6 text-end">{{ item.ancho_hoja }}</div>
+                    </div>
+                    {% endif %}
+                </div>    
+            </div>
         </div>
+        <!-- Tarjeta Resumen -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="text-center mb-0">Resumen</h5>
+                </div>
+                <div class="card-body">
+                    {% for resumen in resumen_tipo_insumo %}
+                        <div class="row mb-2">
+                            <div class="col-6 text-start fw-bold">
+                                {{ resumen.insumo__tipo_insumo__nombre|default:"Sin Tipo" }}:
+                            </div>
+                            <div class="col-6 text-end">
+                                ${{ resumen.total_valor|floatformat:2|intcomma }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        
     </div>
+
     <br>
     {% if detalles %}
         <table class="table table-striped">
@@ -63,3 +94,4 @@
     </div>
 </div>
 {% endblock %}
+
