@@ -6,123 +6,153 @@
 {% block content %}
 <div class="container mt-4">
     <h1 class="text-center">Detalle del Presupuesto</h1>
-    <p class="text-align-left">Presupuesto Nro: {{ presupuesto.numero }}</p>  
-    <p class="text-align-left">Cliente: {{ presupuesto.cliente }}</p>
-
-    {% if items_con_costos %}
-        <table class="table table-striped">
-            <thead class="thead-dark">
-                <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">Tipo</th>
-                    <th class="text-center" scope="col">Cantidad</th>
-                    <th class="text-center" scope="col">Ancho</th>
-                    <th class="text-center" scope="col">Alto</th>
-                    <th class="text-center" scope="col">Color</th>
-                    <th class="text-center" scope="col">Revestimiento</th>
-                    <th class="text-center" scope="col">Costo</th>
-                    <th class="text-center" scope="col">Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for entry in items_con_costos %}
-                    <tr>
-                        <th scope="row">{{ entry.item.id }}</th>
-                        <td>{{ entry.item.tipo.detalle }}</td>
-                        <td class="text-center">{{ entry.item.cantidad }}</td>
-                        <td class="text-center">{{ entry.item.ancho }}</td>
-                        <td class="text-center">{{ entry.item.alto }}</td>
-                        <td class="text-center">{{ entry.item.color.nombre }}</td>
-                        <td class="text-center">{{ entry.item.revestimiento.nombre }}</td>
-                        <td class="text-end">${{ entry.costo|intcomma }}</td>
-                        <td class="text-center">
-                            <a href="{% url 'editar_item' entry.item.id %}" class="btn btn-warning btn-sm">Editar</a>
-                            <a href="{% url 'eliminar_item' entry.item.id %}" class="btn btn-danger btn-sm" 
-                            onclick="return confirm('¿Estás seguro de que deseas eliminar este ítem?')">Eliminar</a>
-                            <a href="{% url 'detalle_insumos' entry.item.id %}" class="btn btn-info btn-sm">Ver Insumos</a>
-
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
     
-    
-        <div class="mt-4 d-flex justify-content-between">
-            <!-- Bloque de TipoInsumo y sus totales -->
-            <div class="col-lg-4">
-                
-                {% for tipo_insumo, total_importe in tipo_insumos_totales.items %}
-                <div class="row">
-                    <div class="col-6 text-start">
-                        <h5>{{ tipo_insumo }}</h5>
-                    </div>
-                    <div class="col-6 text-end">
-                        <h5>${{ total_importe|floatformat:2|intcomma }}</h5>
-                    </div>
-                </div>
-
-                {% endfor %}
-                <hr>
-                <div class="row">
-                    <div class="col-6 text-start">
-                        <h4>Sub-Total:</h4>
-                    </div>
-                    <div class="col-6 text-end">
-                        <h4>${{ sub_total|floatformat:2|intcomma }}</h4>
-                    </div>
-                </div>
+    <div class="col-lg-4">
+        <div class="row">
+            <div class="col-6 text-start">
+                <h5>Presupuesto Nro:</h5>
             </div>
-        
-            <!-- Bloque ya existente -->
-            <div class="col-lg-4">
-                
-                <div class="row">
-                    <div class="col-6 text-start">
-                        <h5>Mano de Obra - 30%:</h5>
-                    </div>
-                    <div class="col-6 text-end">
-                        <h5>${{ mano_obra|floatformat:2|intcomma }}</h5>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-6 text-start">
-                        <h5>Venta - 15%:</h5>
-                    </div>
-                    <div class="col-6 text-end">
-                        <h5>${{ venta|floatformat:2|intcomma }}</h5>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-6 text-start">
-                        <h5>Utilidad - 80%:</h5>
-                    </div>
-                    <div class="col-6 text-end">
-                        <h5>${{ utilidad|floatformat:2|intcomma }}</h5>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-6 text-start">
-                        <h5>Flete (8%):</h5>
-                    </div>
-                    <div class="col-6 text-end">
-                        <h5>${{ flete|floatformat:2|intcomma }}</h5>
-                    </div>
-                </div>
-                <br>
-                <hr>
-                <div class="row">
-                    <div class="col-6 text-start">
-                        <h4>Total:</h4>
-                    </div>
-                    <div class="col-6 text-end">
-                        <h4>${{ total|floatformat:2|intcomma }}</h4>
-                    </div>
-                </div>
+            <div class="col-6 text-end">
+                <h5>{{ presupuesto.numero }}</h5>
+            </div>
+            <div class="col-6 text-start">
+                <h5>Cliente:</h5>
+            </div>
+            <div class="col-6 text-end">
+                <h5>{{ presupuesto.cliente }}</h5>
             </div>
         </div>
+    </div>
+    <div>
+        {% if items_con_costos %}
+            <table class="table table-striped">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Tipo</th>
+                        <th class="text-center" scope="col">Cantidad</th>
+                        <th class="text-center" scope="col">Ancho</th>
+                        <th class="text-center" scope="col">Alto</th>
+                        <th class="text-center" scope="col">Color</th>
+                        <th class="text-center" scope="col">Revestimiento</th>
+                        <th class="text-center" scope="col">Costo</th>
+                        <th class="text-center" scope="col">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in items_con_costos %}
+                        <tr>
+                            <th scope="row">{{ forloop.counter }}</th>
+                            <td>{{ entry.item.tipo.detalle }}</td>
+                            <td class="text-center">{{ entry.item.cantidad }}</td>
+                            <td class="text-center">{{ entry.item.ancho }}</td>
+                            <td class="text-center">{{ entry.item.alto }}</td>
+                            <td class="text-center">{{ entry.item.color.nombre }}</td>
+                            <td class="text-center">{{ entry.item.revestimiento.nombre }}</td>
+                            <td class="text-end">${{ entry.costo|intcomma }}</td>
+                            <td class="text-center">
+                                <a href="{% url 'editar_item' entry.item.id %}" class="btn btn-warning btn-sm">Editar</a>
+                                <a href="{% url 'eliminar_item' entry.item.id %}" class="btn btn-danger btn-sm" 
+                                onclick="return confirm('¿Estás seguro de que deseas eliminar este ítem?')">Eliminar</a>
+                                <a href="{% url 'detalle_insumos' entry.item.id %}" class="btn btn-info btn-sm">Ver Insumos</a>
+
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         
         
+            <div class="mt-4 d-flex justify-content-between">
+                <!-- Bloque de TipoInsumo y sus totales -->
+                <div class="col-lg-4">
+                    <div class="row">
+                        <div class="col-6 text-start">
+                            <h5>Total m²:</h5>
+                        </div>
+                        <div class="col-6 text-end">
+                            <h5>{{ total_m2|floatformat:2 }}</h5>
+                        </div>
+                    </div>
+                    <hr>
+                    {% for tipo_insumo, total_importe in tipo_insumos_totales.items %}
+                    <div class="row">
+                        <div class="col-6 text-start">
+                            <h5>{{ tipo_insumo }}</h5>
+                        </div>
+                        <div class="col-6 text-end">
+                            <h5>${{ total_importe|floatformat:2|intcomma }}</h5>
+                        </div>
+                    </div>
+
+                    {% endfor %}
+                    <hr>
+                    <div class="row">
+                        <div class="col-6 text-start">
+                            <h4>Sub-Total:</h4>
+                        </div>
+                        <div class="col-6 text-end">
+                            <h4>${{ sub_total|floatformat:2|intcomma }}</h4>
+                        </div>
+                    </div>
+                </div>
+            
+                <!-- Bloque ya existente -->
+                <div class="col-lg-4">
+                    <div class="row">
+                        <div class="col-6 text-start">
+                            <h5>Precio m²:</h5>
+                        </div>
+                        <div class="col-6 text-end">
+                            <h4>${{ precio_por_m2|floatformat:2|intcomma }}</h4>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-6 text-start">
+                            <h5>Mano de Obra - 30%:</h5>
+                        </div>
+                        <div class="col-6 text-end">
+                            <h5>${{ mano_obra|floatformat:2|intcomma }}</h5>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 text-start">
+                            <h5>Venta - 15%:</h5>
+                        </div>
+                        <div class="col-6 text-end">
+                            <h5>${{ venta|floatformat:2|intcomma }}</h5>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 text-start">
+                            <h5>Utilidad - 80%:</h5>
+                        </div>
+                        <div class="col-6 text-end">
+                            <h5>${{ utilidad|floatformat:2|intcomma }}</h5>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 text-start">
+                            <h5>Flete (8%):</h5>
+                        </div>
+                        <div class="col-6 text-end">
+                            <h5>${{ flete|floatformat:2|intcomma }}</h5>
+                        </div>
+                    </div>
+                    <br>
+                    <hr>
+                    <div class="row">
+                        <div class="col-6 text-start">
+                            <h4>Total:</h4>
+                        </div>
+                        <div class="col-6 text-end">
+                            <h4>${{ total|floatformat:2|intcomma }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </div>    
         
 
     {% else %}

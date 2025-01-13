@@ -129,6 +129,14 @@ def detalle_presupuesto(request, presupuesto_id):
     ]
     sub_total = sum(entry['costo'] for entry in items_con_costos)
 
+    # Calcular el total de m²
+    total_m2 = sum(
+        (item.ancho / 100) * (item.alto / 100) * item.cantidad
+        for item in items
+    )
+
+    
+
     # Obtener todos los insumos del presupuesto
     insumos = DetalleInsumo.objects.filter(presupuesto=presupuesto)
 
@@ -144,6 +152,9 @@ def detalle_presupuesto(request, presupuesto_id):
     flete = sub_total * Decimal("0.08")
     total = sub_total + mano_obra + venta + utilidad + flete
 
+    # Evitar división por cero
+    precio_por_m2 = total / total_m2 if total_m2 > 0 else 0
+    
     return render(request, 'detalle_presupuesto.html', {
         'presupuesto': presupuesto,
         'items_con_costos': items_con_costos,
@@ -153,6 +164,8 @@ def detalle_presupuesto(request, presupuesto_id):
         'utilidad': utilidad,
         'flete': flete,
         'total': total,
+        'total_m2': total_m2,  # Agregar Total m2 al contexto
+        'precio_por_m2': precio_por_m2,  # Agregar el precio por m² al contexto
         'tipo_insumos_totales': dict(tipo_insumos_totales),
     })
 
