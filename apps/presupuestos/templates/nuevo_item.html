@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h1 class="text-center">{{ item.id|default:"Agregar Nuevo" }} Ítem</h1>
+    <h1 class="text-center">{{ forloop.counter }} Ítem</h1>
     <div class="row justify-content-center">
         <div class="col-md-6">
             <form id="itemForm" method="post" onsubmit="return validateForm()">
@@ -62,38 +62,33 @@
                         <!-- Ancho -->
                         <div class="form-group mb-3">
                             <label for="ancho">Ancho (cm)</label>
-                            <input type="number" step="0.01" id="ancho" name="ancho" class="form-control" 
-                                   value="{{ form.ancho.value }}" required>
+                            {{ form.ancho }}
                         </div>
                         
                         <!-- Alto -->
                         <div class="form-group mb-3">
                             <label for="alto">Alto (cm)</label>
-                            <input type="number" step="0.01" id="alto" name="alto" class="form-control" 
-                                   value="{{ form.alto.value }}" required>
+                            {{ form.alto }}
                         </div>
 
                         <!-- Ancho Hoja (Condicional) -->
                         <div class="form-group mb-3" id="anchoHojaGroup" 
                              style="display: {% if form.ancho_hoja.value %}block{% else %}none{% endif %};">
                             <label for="ancho_hoja">Ancho Hoja (cm)</label>
-                            <input type="number" step="0.01" id="ancho_hoja" name="ancho_hoja" class="form-control" 
-                                   value="{{ form.ancho_hoja.value }}">
+                            {{ form.ancho_hoja }}
                         </div>
 
                         <!-- Alto Lama (Condicional para Revestimiento Lama) -->
                         <div class="form-group mb-3" id="altoLamaGroup" 
                              style="display: {% if form.alto_lama.value %}block{% else %}none{% endif %};">
                             <label for="alto_lama">Alto Lama (cm)</label>
-                            <input type="number" step="0.01" id="alto_lama" name="alto_lama" class="form-control"
-                                   value="{{ form.alto_lama.value|default:'' }}">
+                            {{ form.alto_lama}}
                         </div>
 
                         <!-- Desperdicio -->
                         <div class="form-group mb-3">
                             <label for="desperdicio">Desperdicio (%)</label>
-                            <input type="number" step="0.01" id="desperdicio" name="desperdicio" class="form-control" 
-                                   value="{{ form.desperdicio.value|default:'0.0' }}" required>
+                            {{ form.desperdicio }}
                         </div>
                     </div>
                 </div>

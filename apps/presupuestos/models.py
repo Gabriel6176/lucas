@@ -101,8 +101,8 @@ class Item(models.Model):
     """
     presupuesto = models.ForeignKey(Presupuesto, related_name='items', on_delete=models.CASCADE)  # Relación con el presupuesto
     cantidad = models.PositiveIntegerField()  # Cantidad del ítem
-    ancho = models.DecimalField(max_digits=10, decimal_places=2)  # Ancho en unidades
-    alto = models.DecimalField(max_digits=10, decimal_places=2)  # Alto en unidades
+    ancho = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)  # Ancho en unidades
+    alto = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)  # Alto en unidades
     ancho_hoja = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)  # Ancho de hoja en unidades
     alto_lama = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     tipo = models.ForeignKey(Tipo, on_delete=models.CASCADE)  # Tipo de ítem (ventana, puerta, etc.)

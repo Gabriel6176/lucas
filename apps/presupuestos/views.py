@@ -97,6 +97,7 @@ def editar_item(request, item_id):
         'tipos': tipos,
         'colores': colores,
         'revestimientos': revestimientos,
+        'item': item,  # Pasa el ítem para que se utilice en la plantilla
     })
 
 
