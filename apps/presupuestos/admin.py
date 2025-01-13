@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Lugar, Tipo, Revestimiento, Color, Presupuesto, Item, Insumo
+from .models import Lugar, Tipo, Revestimiento, Color, Presupuesto, Item, Insumo, TipoInsumo
 
 # Registrar los modelos
 @admin.register(Lugar)
@@ -34,5 +34,11 @@ class ItemAdmin(admin.ModelAdmin):
 
 @admin.register(Insumo)
 class LugarAdmin(admin.ModelAdmin):
-    list_display = ('id', 'codigo', 'descripcion', 'precio', 'unidad_medida', 'color', 'formula')  # Muestra los campos en la tabla del admin
+    list_display = ('id', 'codigo', 'descripcion', 'precio', 'unidad_medida', 'color', 'formula', 'tipo_insumo')  # Muestra los campos en la tabla del admin
     search_fields = ('codigo', 'descripcion')  # Permite buscar por nombre
+
+@admin.register(TipoInsumo)
+class TipoInsumoAdmin(admin.ModelAdmin):
+    list_display = ('id', 'nombre')
+    list_filter = ('nombre',)
+    ordering = ('id',)

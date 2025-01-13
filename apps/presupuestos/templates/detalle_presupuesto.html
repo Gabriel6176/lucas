@@ -9,7 +9,7 @@
     <p class="text-align-left">Presupuesto Nro: {{ presupuesto.numero }}</p>  
     <p class="text-align-left">Cliente: {{ presupuesto.cliente }}</p>
 
-    {% if items %}
+    {% if items_con_costos %}
         <table class="table table-striped">
             <thead class="thead-dark">
                 <tr>
@@ -48,9 +48,83 @@
         </table>
     
     
-        <div class="text-right mt-4">
-            <h3>Total: ${{ total|intcomma }}</h3>
+        <div class="mt-4 d-flex justify-content-between">
+            <!-- Bloque de TipoInsumo y sus totales -->
+            <div class="col-lg-4">
+                
+                {% for tipo_insumo, total_importe in tipo_insumos_totales.items %}
+                <div class="row">
+                    <div class="col-6 text-start">
+                        <h5>{{ tipo_insumo }}</h5>
+                    </div>
+                    <div class="col-6 text-end">
+                        <h5>${{ total_importe|floatformat:2|intcomma }}</h5>
+                    </div>
+                </div>
+
+                {% endfor %}
+                <hr>
+                <div class="row">
+                    <div class="col-6 text-start">
+                        <h4>Sub-Total:</h4>
+                    </div>
+                    <div class="col-6 text-end">
+                        <h4>${{ sub_total|floatformat:2|intcomma }}</h4>
+                    </div>
+                </div>
+            </div>
+        
+            <!-- Bloque ya existente -->
+            <div class="col-lg-4">
+                
+                <div class="row">
+                    <div class="col-6 text-start">
+                        <h5>Mano de Obra - 30%:</h5>
+                    </div>
+                    <div class="col-6 text-end">
+                        <h5>${{ mano_obra|floatformat:2|intcomma }}</h5>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 text-start">
+                        <h5>Venta - 15%:</h5>
+                    </div>
+                    <div class="col-6 text-end">
+                        <h5>${{ venta|floatformat:2|intcomma }}</h5>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 text-start">
+                        <h5>Utilidad - 80%:</h5>
+                    </div>
+                    <div class="col-6 text-end">
+                        <h5>${{ utilidad|floatformat:2|intcomma }}</h5>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 text-start">
+                        <h5>Flete (8%):</h5>
+                    </div>
+                    <div class="col-6 text-end">
+                        <h5>${{ flete|floatformat:2|intcomma }}</h5>
+                    </div>
+                </div>
+                <br>
+                <hr>
+                <div class="row">
+                    <div class="col-6 text-start">
+                        <h4>Total:</h4>
+                    </div>
+                    <div class="col-6 text-end">
+                        <h4>${{ total|floatformat:2|intcomma }}</h4>
+                    </div>
+                </div>
+            </div>
         </div>
+        
+        
+        
+
     {% else %}
         <p class="text-center">No hay ítems asociados a este presupuesto.</p>
     {% endif %}

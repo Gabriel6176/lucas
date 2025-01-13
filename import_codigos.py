@@ -7,8 +7,8 @@ database_file = "db.sqlite3"
 
 try:
     # Leer el archivo Excel
-    df = pd.read_excel(excel_file, sheet_name="INSUMOS", usecols="A:F", skiprows=0)
-    df.columns = ["codigo", "descripcion", "precio", "unidad_medida", "formula", "color_id"]
+    df = pd.read_excel(excel_file, sheet_name="INSUMOS", usecols="A:G", skiprows=0)
+    df.columns = ["codigo", "descripcion", "precio", "unidad_medida", "formula", "color_id", "tipo_insumo_id"]
 
     # Convertir valores nulos en el DataFrame a None
     df = df.where(pd.notnull(df), None)

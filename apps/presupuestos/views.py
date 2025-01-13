@@ -3,6 +3,9 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from .models import Presupuesto, Item, Lugar, Tipo, Revestimiento, Color, DetalleInsumo
 from .forms import PresupuestoForm, ItemForm
+from decimal import Decimal
+from collections import defaultdict
+
 
 @login_required
 def dashboard(request):
@@ -117,26 +120,40 @@ def eliminar_presupuesto(request, presupuesto_id):
 
 @login_required
 def detalle_presupuesto(request, presupuesto_id):
-    """
-    Vista para ver o editar los detalles de un presupuesto existente.
-    Muestra un desglose de los ítems asociados y permite editar/eliminar ítems.
-    """
     presupuesto = get_object_or_404(Presupuesto, numero=presupuesto_id)
     items = presupuesto.items.all()
 
-    # Agregar el total de cada ítem al contexto
+    # Calcular los costos totales y los costos filtrados por tipo_insumo
     items_con_costos = [
         {'item': item, 'costo': item.calcular_costo()} for item in items
     ]
+    sub_total = sum(entry['costo'] for entry in items_con_costos)
 
-    # Calcular el costo total del presupuesto
-    total = sum(entry['costo'] for entry in items_con_costos)
+    # Obtener todos los insumos del presupuesto
+    insumos = DetalleInsumo.objects.filter(presupuesto=presupuesto)
+
+    # Cálculos específicos
+    tipo_insumos_totales = defaultdict(Decimal)
+    for insumo in insumos:
+        tipo_insumo_nombre = insumo.insumo.tipo_insumo.nombre if insumo.insumo.tipo_insumo else "Sin Tipo"
+        tipo_insumos_totales[tipo_insumo_nombre] += insumo.precio_total
+
+    mano_obra = sub_total * Decimal("0.30")
+    venta = sub_total * Decimal("0.15")
+    utilidad = sub_total * Decimal("0.80")
+    flete = sub_total * Decimal("0.08")
+    total = sub_total + mano_obra + venta + utilidad + flete
 
     return render(request, 'detalle_presupuesto.html', {
         'presupuesto': presupuesto,
-        'items': items,  # Esto permite que puedas usarlo si lo necesitas
         'items_con_costos': items_con_costos,
+        'sub_total': sub_total,
+        'mano_obra': mano_obra,
+        'venta': venta,
+        'utilidad': utilidad,
+        'flete': flete,
         'total': total,
+        'tipo_insumos_totales': dict(tipo_insumos_totales),
     })
 
 @login_required

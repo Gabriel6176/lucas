@@ -3,6 +3,7 @@ from sympy import sympify
 from decimal import Decimal, ROUND_HALF_UP
 from sympy import N,Piecewise
 
+
 class Lugar(models.Model):
     """
     Modelo para definir los lugares disponibles.
@@ -53,6 +54,15 @@ class Presupuesto(models.Model):
     def __str__(self):
         return f"Presupuesto {self.numero} - {self.cliente}"
 
+class TipoInsumo(models.Model):
+    """
+    Modelo para definir los tipos de insumo disponibles.
+    """
+    nombre = models.CharField(max_length=50, unique=True)  # Nombre del tipo de insumo (por ejemplo, 'Material', 'Herramienta')
+    
+    def __str__(self):
+        return self.nombre
+
 
 class Insumo(models.Model):
     """
@@ -64,6 +74,7 @@ class Insumo(models.Model):
     unidad_medida = models.CharField(max_length=50)  # Unidad de medida (por ejemplo, METRO)
     color = models.ForeignKey(Color, null=True, blank=True, on_delete=models.SET_NULL)  # Color asociado, si aplica
     formula = models.TextField()  # Fórmula para calcular la cantidad del insumo
+    tipo_insumo = models.ForeignKey(TipoInsumo, on_delete=models.CASCADE, null=True, blank=True)  # Relación con TipoInsumo
 
     def __str__(self):
         return f"{self.codigo} - {self.descripcion}"
