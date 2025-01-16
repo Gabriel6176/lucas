@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalle Insumos del Presupuesto{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="text-center">Detalle de Insumos - Presupuesto {{ presupuesto.numero }}</h1>
+
+    <div class="container mt-4">
+        <div class="card" style="max-width: 50%;">
+            <div class="card-header bg-primary text-white">
+                Resumen por Tipo de Insumo
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Tipo de Insumo</th>
+                            <th class="text-end">Valor Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tipo_insumo in resumen_tipo_insumo %}
+                        <tr>
+                            <td>{{ tipo_insumo.insumo__tipo_insumo__nombre }}</td>
+                            <td class="text-end">{{ tipo_insumo.total_valor|floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    
+
+    <h3 class="mt-4">Detalles de Insumos</h3>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Código Insumo</th>
+                <th>Descripción Insumo</th>
+                <th>Total Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Total Precio</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for detalle in detalles %}
+            <tr>
+                <td>{{ detalle.insumo__codigo }}</td>
+                <td>{{ detalle.insumo__descripcion }}</td>
+                <td class="text-end">{{ detalle.total_cantidad|floatformat:2 }}</td>
+                <td class="text-end">{{ detalle.precio_unitario|floatformat:2 }}</td>
+                <td class="text-end">{{ detalle.total_precio|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <div class="mt-4 d-flex justify-content-end">
+        <a href="{% url 'detalle_presupuesto' presupuesto.numero %}" class="btn btn-primary" style="background-color: #4682B4; color: white;">
+            Volver al Detalle del Presupuesto
+        </a>
+    </div>
+    <br>
+</div>
+{% endblock %}
+
+

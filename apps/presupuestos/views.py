@@ -7,8 +7,7 @@ from decimal import Decimal
 from collections import defaultdict
 from django.contrib import messages
 from django.utils.timezone import now
-from django.db.models import Sum
-
+from django.db.models import Sum, F
 
 @login_required
 def dashboard(request):
@@ -181,6 +180,56 @@ def detalle_presupuesto(request, presupuesto_id):
         'precio_por_m2': precio_por_m2,  # Agregar el precio por m² al contexto
         'tipo_insumos_totales': dict(tipo_insumos_totales),
     })
+
+
+
+@login_required
+def detalle_insumos_presupuesto(request, presupuesto_id):
+    """
+    Calcula y muestra los detalles de insumos para todos los ítems de un presupuesto,
+    agrupando los insumos por código y sumando cantidades y precios.
+    """
+    # Obtener el presupuesto
+    presupuesto = get_object_or_404(Presupuesto, numero=presupuesto_id)
+
+    # Obtener solo los ítems asociados al presupuesto
+    items = presupuesto.items.all()
+
+    # Eliminar los insumos previamente calculados para los ítems de este presupuesto
+    DetalleInsumo.objects.filter(item__in=items).delete()
+
+    # Iterar sobre los ítems para calcular los insumos
+    for item in items:
+        item.calcular_insumos()  # Recalcular insumos para cada ítem
+
+    # Obtener y agrupar todos los detalles de insumos generados para el presupuesto
+    detalles = (
+        DetalleInsumo.objects.filter(item__in=items)
+        .values('insumo__codigo', 'insumo__descripcion', 'precio_unitario', 'insumo__tipo_insumo__id')
+        .annotate(
+            total_cantidad=Sum('cantidad_usada'),
+            total_precio=Sum('precio_total'),
+        )
+        .order_by('insumo__tipo_insumo__id', 'insumo__codigo')  # Orden descendente por tipo_insumo_id, luego por código
+    )
+
+    # Agrupar por tipo_insumo y sumar los valores
+    resumen_tipo_insumo = (
+        DetalleInsumo.objects.filter(item__in=items)
+        .values('insumo__tipo_insumo__nombre')
+        .annotate(total_valor=Sum('precio_total'))
+        .order_by('insumo__tipo_insumo__id')
+    )
+
+    return render(request, 'detalle_insumos_presupuesto.html', {
+        'presupuesto': presupuesto,
+        'detalles': detalles,  # Detalles agrupados por código de insumo
+        'resumen_tipo_insumo': resumen_tipo_insumo,  # Resumen por tipo de insumo
+    })
+
+
+
+
 
 @login_required
 def detalle_insumos(request, item_id):

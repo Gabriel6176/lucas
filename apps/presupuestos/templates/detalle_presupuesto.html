@@ -178,6 +178,9 @@
         <!-- Botón "Volver al Dashboard" alineado a la izquierda -->
         <a href="{% url 'dashboard' %}" class="btn btn-secondary me-2">Volver al Dashboard</a>
         
+        <!-- Botón "Detalle Insumos Presupuesto" alineado a la izquierda -->
+        <a href="{% url 'detalle_insumos_presupuesto' presupuesto.numero %}" class="btn btn-primary me-2" style="background-color: #4682B4; color: white;">Detalle Insumos Presupuesto</a>
+
         <!-- Botón "Agregar Nuevo Ítem" alineado a la derecha -->
         <a href="{% url 'nuevo_item' presupuesto.numero %}" class="btn btn-primary">+ Agregar Nuevo Ítem</a>
     </div>
