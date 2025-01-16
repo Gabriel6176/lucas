@@ -139,8 +139,6 @@ def detalle_presupuesto(request, presupuesto_id):
         for item in items
     )
 
-    
-
     # Obtener todos los insumos del presupuesto
     insumos = DetalleInsumo.objects.filter(presupuesto=presupuesto)
 
@@ -150,15 +148,26 @@ def detalle_presupuesto(request, presupuesto_id):
         tipo_insumo_nombre = insumo.insumo.tipo_insumo.nombre if insumo.insumo.tipo_insumo else "Sin Tipo"
         tipo_insumos_totales[tipo_insumo_nombre] += insumo.precio_total
 
-    mano_obra = sub_total * Decimal("0.30")
-    venta = sub_total * Decimal("0.15")
-    utilidad = sub_total * Decimal("0.80")
-    flete = sub_total * Decimal("0.08")
+    # Calcular subtotal de insumos con tipo_insumo_id=1
+    subtotal_tipo_1 = insumos.filter(insumo__tipo_insumo_id=1).aggregate(
+        subtotal=Sum('precio_total')
+    )['subtotal'] or Decimal(0)
+
+    # Calcular subtotal de insumos con tipo_insumo_id en [1, 3, 4, 5, 6]
+    subtotal_tipo_2 = insumos.filter(insumo__tipo_insumo_id__in=[1, 3, 4, 5, 6]).aggregate(
+        subtotal=Sum('precio_total')
+    )['subtotal'] or Decimal(0)
+
+    # Calcular costos adicionales
+    mano_obra = subtotal_tipo_1 * Decimal("0.30")
+    venta = subtotal_tipo_1 * Decimal("0.15")
+    utilidad = subtotal_tipo_1 * Decimal("0.80")  # Utilidad solo sobre tipo_insumo_id=1
+    flete = subtotal_tipo_2 * Decimal("0.08") # Utilidad solo sobre tipo_insumo_id=1+3+4+5+6
     total = sub_total + mano_obra + venta + utilidad + flete
 
     # Evitar división por cero
     precio_por_m2 = total / total_m2 if total_m2 > 0 else 0
-    
+
     return render(request, 'detalle_presupuesto.html', {
         'presupuesto': presupuesto,
         'items_con_costos': items_con_costos,
