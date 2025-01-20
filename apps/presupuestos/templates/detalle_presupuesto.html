@@ -48,7 +48,11 @@
                         <th class="text-center" scope="col">Cantidad</th>
                         <th class="text-center" scope="col">Ancho</th>
                         <th class="text-center" scope="col">Alto</th>
-                        <th class="text-center" scope="col">Color</th>
+                        <th class="text-center" scope="col">
+                            <a href="#" id="cambiar-color" class="text-primary" data-bs-toggle="modal" data-bs-target="#modalCambiarColor">
+                                Color
+                            </a>
+                        </th>
                         <th class="text-center" scope="col">Revestimiento</th>
                         <th class="text-center" scope="col">Desperdicio %</th>
                         <th class="text-center" scope="col">Costo</th>
@@ -187,6 +191,63 @@
         <a href="{% url 'nuevo_item' presupuesto.numero %}" class="btn btn-primary">+ Agregar Nuevo Ítem</a>
     </div>
     
+<!-- Modal para seleccionar un color -->
+<div class="modal fade" id="modalCambiarColor" tabindex="-1" role="dialog" aria-labelledby="modalCambiarColorLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalCambiarColorLabel">Cambiar Color</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formCambiarColor">
+                    <div class="mb-3">
+                        <label for="color-select" class="form-label">Selecciona un nuevo color:</label>
+                        <select id="color-select" class="form-select" name="color_id" required>
+                            {% for color in colores %}
+                                <option value="{{ color.id }}">{{ color.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Cambiar</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+    document.getElementById('formCambiarColor').addEventListener('submit', function (e) {
+        e.preventDefault();
+    
+        // Obtener el ID del color seleccionado
+        const colorId = document.getElementById('color-select').value;
+    
+        // Enviar solicitud POST al servidor
+        fetch("{% url 'cambiar_color_presupuesto' presupuesto.numero %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ color_id: colorId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert(data.message);
+                location.reload(); // Recargar la página para reflejar los cambios
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Hubo un error al cambiar el color.');
+        });
+    });
+    </script>
+    
+    
 {% endblock %} 
 

@@ -156,6 +156,7 @@ def eliminar_presupuesto(request, presupuesto_id):
 def detalle_presupuesto(request, presupuesto_id):
     presupuesto = get_object_or_404(Presupuesto, numero=presupuesto_id)
     items = presupuesto.items.all()
+    colores = Color.objects.all()  # Agregar los colores disponibles
 
     # Calcular los costos totales y los costos filtrados por tipo_insumo
     items_con_costos = [
@@ -204,6 +205,7 @@ def detalle_presupuesto(request, presupuesto_id):
     return render(request, 'detalle_presupuesto.html', {
         'presupuesto': presupuesto,
         'items_con_costos': items_con_costos,
+        'colores': colores,
         'sub_total': sub_total,
         'mano_obra': mano_obra,
         'venta': venta,
@@ -353,3 +355,29 @@ def recalcular_presupuesto(request, presupuesto_id):
 
     # Redirigir al detalle del presupuesto
     return redirect('detalle_presupuesto', presupuesto_id=presupuesto_id)
+
+def cambiar_color_presupuesto(request, presupuesto_id):
+    """
+    Cambia el color de todos los ítems de un presupuesto y recalcula insumos.
+    """
+    if request.method == 'POST':
+        import json
+        data = json.loads(request.body)
+        nuevo_color_id = data.get('color_id')  # ID del nuevo color
+        presupuesto = get_object_or_404(Presupuesto, numero=presupuesto_id)
+
+        # Validar que el color exista
+        nuevo_color = get_object_or_404(Color, id=nuevo_color_id)
+
+        # Actualizar el color de todos los ítems del presupuesto
+        items = presupuesto.items.all()
+        items.update(color=nuevo_color)
+
+        # Recalcular los insumos de cada ítem
+        for item in items:
+            item.calcular_insumos()
+
+        # Devolver respuesta JSON indicando éxito
+        return JsonResponse({'status': 'success', 'message': 'Color actualizado correctamente.'})
+
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido.'}, status=405)
