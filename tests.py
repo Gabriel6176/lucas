@@ -8,18 +8,26 @@ from decimal import Decimal
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'lucas.settings')  # Asegúrate de que 'lucas.settings' sea correcto
 django.setup()
 
-from apps.presupuestos.models import DetalleInsumo
+from apps.presupuestos.models import DetalleInsumo, Item, Insumo
 
+# Filtrar los DetalleInsumo con el tipo_insumo_id deseado
 detalles = (
     DetalleInsumo.objects.filter(insumo__tipo_insumo__id=1)
-    .annotate(
-        desperdicio_calculado=ExpressionWrapper(
-            F('cantidad_usada') * ((F('item__desperdicio') / 100.0) + 1.0),  # Asegúrate de usar 1.0
-            output_field=DecimalField(max_digits=10, decimal_places=2)
-        )
-    )
-    .values('cantidad_usada', 'item__desperdicio', 'desperdicio_calculado')
+    .select_related('item', 'insumo')
+    .values('item__presupuesto__numero', 'item__id', 'insumo__codigo', 'insumo__tipo_insumo__id', 'item__desperdicio')
 )
 
+# Evaluar los valores y realizar cálculos
 for detalle in detalles:
-    print(detalle)
+    item_codigo = detalle['item__presupuesto__numero']
+    insumo_codigo = detalle['insumo__codigo']
+    tipo_insumo_id = detalle['insumo__tipo_insumo__id']
+    desperdicio = detalle['item__desperdicio']
+    
+    # Calcular cantidad con desperdicio
+    cantidad_usada = Decimal('8.0')  # Reemplaza este valor con tu consulta real si lo necesitas
+    cantidad_desperdicio = cantidad_usada * Decimal(1 + desperdicio / 100)
+
+    # Imprimir resultados
+    print(f"Item Código: {item_codigo}, Insumo Código: {insumo_codigo}, Tipo Insumo ID: {tipo_insumo_id}")
+    print(f"Desperdicio: {desperdicio}, Cantidad Usada: {cantidad_usada}, Cantidad Desperdicio: {cantidad_desperdicio}")

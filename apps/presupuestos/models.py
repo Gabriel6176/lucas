@@ -171,7 +171,7 @@ class Item(models.Model):
 
                 # Calcular el precio total usando cantidad_desperdicio
                 precio_total = cantidad_desperdicio * insumo.precio
-
+                print(insumo.codigo, insumo.descripcion, precio_total)
                 detalle = DetalleInsumo(
                     presupuesto=self.presupuesto,
                     item=self,

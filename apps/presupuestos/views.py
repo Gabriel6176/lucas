@@ -274,13 +274,9 @@ def detalle_insumos(request, item_id):
                 default=F('cantidad_usada'),
                 output_field=DecimalField(max_digits=10, decimal_places=2)
             ),
-            # Calcular precio_total basado en cantidad_desperdicio * precio_unitario
-            precio_total=ExpressionWrapper(
-                Case(
-                    When(insumo__tipo_insumo__id=1, then=F('cantidad_usada') * (1 + F('item__desperdicio') / 100)),
-                    default=F('cantidad_usada'),
-                    output_field=DecimalField(max_digits=10, decimal_places=2)
-                ) * F('precio_unitario'),
+            # Calcular precio_total como cantidad_desperdicio * precio_unitario
+            precio_total = ExpressionWrapper(
+                F('cantidad_desperdicio') * F('precio_unitario'),
                 output_field=DecimalField(max_digits=10, decimal_places=2)
             )
         )
