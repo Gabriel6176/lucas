@@ -40,7 +40,8 @@
             <tr>
                 <th>Código Insumo</th>
                 <th>Descripción Insumo</th>
-                <th>Total Cantidad</th>
+                <th>Cantidad</th>
+                <th>Cantidad c/Desperdicio</th>
                 <th>Precio Unitario</th>
                 <th>Total Precio</th>
             </tr>
@@ -51,6 +52,7 @@
                 <td>{{ detalle.insumo__codigo }}</td>
                 <td>{{ detalle.insumo__descripcion }}</td>
                 <td class="text-end">{{ detalle.total_cantidad|floatformat:2 }}</td>
+                <td class="text-end">{{ detalle.total_cantidad_desperdicio|floatformat:2 }}</td>
                 <td class="text-end">{{ detalle.precio_unitario|floatformat:2 }}</td>
                 <td class="text-end">{{ detalle.total_precio|floatformat:2 }}</td>
             </tr>

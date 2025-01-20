@@ -85,7 +85,7 @@ class DetalleInsumo(models.Model):
     Modelo para almacenar los detalles de insumos utilizados en un presupuesto.
     """
     presupuesto = models.ForeignKey(Presupuesto, on_delete=models.CASCADE)  # Relación con el presupuesto
-    item = models.ForeignKey('Item', on_delete=models.CASCADE)  # Relación con el ítem
+    item = models.ForeignKey('Item', on_delete=models.CASCADE, related_name='detalles')  # Relación con el ítem
     insumo = models.ForeignKey(Insumo, on_delete=models.CASCADE)  # Relación con el insumo
     cantidad_usada = models.DecimalField(max_digits=10, decimal_places=2)  # Cantidad calculada del insumo
     precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)  # Precio unitario del insumo
@@ -112,56 +112,66 @@ class Item(models.Model):
 
     
 
+    @property
+    def cantidad_desperdicio(self):
+        """
+        Calcula la cantidad considerando el desperdicio.
+        Solo aplica el cálculo para tipo_insumo_id=1; para otros, se usa la cantidad original.
+        """
+        if hasattr(self.tipo, 'tipo_insumo_id') and self.tipo.tipo_insumo_id == 1:
+            return self.cantidad * (1 + self.desperdicio / 100)
+        return self.cantidad
+
     def calcular_insumos(self):
         """
-        Calcula la cantidad y el costo de cada insumo asociado al ítem.
-        Evalúa únicamente los insumos con el mismo color que el ítem.
+        Recalcula las cantidades y los precios de los insumos asociados al ítem.
         """
+        # Eliminar insumos previamente calculados
+        DetalleInsumo.objects.filter(item=self).delete()
+
         # Filtrar insumos por color
-        if self.color.id in [1, 2, 3]:  # Si el color del ítem es "Blanco", "Simil Madera" o "Negro"
+        if self.color.id in [1, 2, 3]:  # Ejemplo: Blanco, Simil Madera, Negro
             insumos = Insumo.objects.filter(color=self.color)
-            print(f"Filtrando insumos para color ID {self.color.id}: {list(insumos)}")
-        else:  # Otros colores o sin color asociado
+        else:
             insumos = Insumo.objects.filter(color__isnull=True)
-            print(f"Filtrando insumos sin color asociado: {list(insumos)}")
 
         if not insumos.exists():
-            print(f"No se encontraron insumos para el color ID {self.color.id}.")
             return
 
         detalles = []
-
         for insumo in insumos:
             formula_context = {
-                'CANTIDAD': float(self.cantidad),
-                'ANCHO': float(self.ancho)/100,
-                'ALTO': float(self.alto)/100,
-                'ANCHO_HOJA': float(self.ancho_hoja or 0)/100,
+                'CANTIDAD': float(self.cantidad_desperdicio),  # Usa cantidad con desperdicio
+                'ANCHO': float(self.ancho) / 100,
+                'ALTO': float(self.alto) / 100,
+                'ANCHO_HOJA': float(self.ancho_hoja or 0) / 100,
                 'TIPO': int(self.tipo.numero),
                 'DESPERDICIO': float(self.desperdicio) / 100,
-                # Agregar el ID del revestimiento al contexto
-                'REVESTIMIENTO': int(self.revestimiento.id),  
-                # Determinar el valor de ALTO_LAMA según el revestimiento
-                'ALTO_LAMA': (float(self.alto)/100 if self.revestimiento.id == 6 else float(self.alto_lama or 0) if self.revestimiento.id == 8 else 0),
+                'REVESTIMIENTO': int(self.revestimiento.id),
+                'ALTO_LAMA': (
+                    float(self.alto) / 100 if self.revestimiento.id == 6
+                    else float(self.alto_lama or 0) if self.revestimiento.id == 8
+                    else 0
+                ),
             }
 
-            # Depuración de la fórmula y contexto
-            print(f"Evaluando fórmula para insumo {insumo.codigo}")
-            print(f"Fórmula original: {insumo.formula}")
-            print(f"Contexto: {formula_context}")
-
             try:
-                # Evaluar la fórmula manualmente
+                # Calcular cantidad basada en fórmula
                 cantidad = eval(insumo.formula, {}, formula_context)
-                cantidad = max(0, round(float(cantidad), 2))  # Asegurarse de que la cantidad sea válida
-                print(f"Cantidad calculada: {cantidad}")
+                cantidad = max(0, round(float(cantidad), 2))
             except Exception as e:
-                print(f"Error evaluando fórmula para insumo {insumo.codigo}: {e}")
                 cantidad = 0
 
             if cantidad > 0:
-                precio_total = Decimal(cantidad) * insumo.precio
-                print(f"Precio total calculado para insumo {insumo.codigo}: {precio_total}")
+                # Condicional para calcular cantidad_desperdicio solo para tipo_insumo_id=1
+                if insumo.tipo_insumo and insumo.tipo_insumo.id == 1:
+                    cantidad_desperdicio = Decimal(cantidad) * Decimal(1 + self.desperdicio / 100)
+                else:
+                    cantidad_desperdicio = Decimal(cantidad)  # Para otros, cantidad_desperdicio es igual a cantidad
+
+                # Calcular el precio total usando cantidad_desperdicio
+                precio_total = cantidad_desperdicio * insumo.precio
+
                 detalle = DetalleInsumo(
                     presupuesto=self.presupuesto,
                     item=self,
@@ -171,13 +181,9 @@ class Item(models.Model):
                     precio_total=precio_total,
                 )
                 detalles.append(detalle)
-            else:
-                print(f"No se generaron detalles para insumo {insumo.codigo}. Cantidad evaluada: {cantidad}")
 
+        # Crear los nuevos detalles de insumos en la base de datos
         DetalleInsumo.objects.bulk_create(detalles)
-        print(f"Detalles de insumos generados: {detalles}")
-
-
 
     def calcular_costo(self):
         """
@@ -186,7 +192,4 @@ class Item(models.Model):
         insumos = DetalleInsumo.objects.filter(item=self)
         total = sum(insumo.precio_total for insumo in insumos)
         return total
-
-    def __str__(self):
-        return f"Item {self.presupuesto.numero} - {self.tipo.detalle}"
 

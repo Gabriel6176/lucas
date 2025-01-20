@@ -69,6 +69,7 @@
                     <th class="text-center" scope="col">Codigo</th>
                     <th class="text-align-left" scope="col">Detalle</th>
                     <th class="text-center" scope="col">Cantidad Usada</th>
+                    <th class="text-center" scope="col">Cantidad c/Desperdicio</th>
                     <th class="text-center" scope="col">Precio Unitario</th>
                     <th class="text-center" scope="col">Precio Total</th>
                 </tr>
@@ -76,11 +77,12 @@
             <tbody>
                 {% for detalle in detalles %}
                 <tr>
-                    <td class="text-center">{{ detalle.insumo.codigo }}</td>
-                    <td class="text-align-left">{{ detalle.insumo.descripcion }}</td>
+                    <td class="text-center">{{ detalle.insumo__codigo }}</td>
+                    <td class="text-align-left">{{ detalle.insumo__descripcion }}</td>
                     <td class="text-center">{{ detalle.cantidad_usada }}</td>
+                    <td class="text-center">{{ detalle.cantidad_desperdicio|floatformat:2 }}</td>
                     <td class="text-end">${{ detalle.precio_unitario|intcomma }}</td>
-                    <td class="text-end">${{ detalle.precio_total|intcomma }}</td>
+                    <td class="text-end">${{ detalle.precio_total|floatformat:2 }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -89,7 +91,7 @@
         <p>No hay insumos asociados a este ítem.</p>
     {% endif %}
 
-    <div class="mt-4">
+    <div class="mt-4 d-flex justify-content-end">
         <a href="{% url 'detalle_presupuesto' item.presupuesto.numero %}" class="btn btn-secondary">Volver al Presupuesto</a>
     </div>
 </div>

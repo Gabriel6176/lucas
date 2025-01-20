@@ -50,6 +50,7 @@
                         <th class="text-center" scope="col">Alto</th>
                         <th class="text-center" scope="col">Color</th>
                         <th class="text-center" scope="col">Revestimiento</th>
+                        <th class="text-center" scope="col">Desperdicio %</th>
                         <th class="text-center" scope="col">Costo</th>
                         <th class="text-center" scope="col">Acciones</th>
                     </tr>
@@ -64,6 +65,7 @@
                             <td class="text-center">{{ entry.item.alto }}</td>
                             <td class="text-center">{{ entry.item.color.nombre }}</td>
                             <td class="text-center">{{ entry.item.revestimiento.nombre }}</td>
+                            <td class="text-center">{{ entry.item.desperdicio }}</td>
                             <td class="text-end">${{ entry.costo|intcomma }}</td>
                             <td class="text-center">
                                 <a href="{% url 'editar_item' entry.item.id %}" class="btn btn-warning btn-sm">Editar</a>

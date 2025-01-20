@@ -7,7 +7,7 @@ from decimal import Decimal
 from collections import defaultdict
 from django.contrib import messages
 from django.utils.timezone import now
-from django.db.models import Sum, F
+from django.db.models import Sum, F, ExpressionWrapper, Case, When, DecimalField
 
 @login_required
 def dashboard(request):
@@ -76,27 +76,26 @@ def editar_item(request, item_id):
         if form.is_valid():
             item = form.save()
             
-            # Eliminar los insumos previamente calculados
-            DetalleInsumo.objects.filter(item=item).delete()
-
-            # Recalcular insumos
+            # Eliminar los insumos previamente calculados y recalcular
             item.calcular_insumos()
+            
+            # Redirigir al detalle del presupuesto
             return redirect('detalle_presupuesto', presupuesto_id=item.presupuesto.numero)
     else:
-        form = ItemForm(instance=item)  # Pasa el ítem como instancia para prellenar el formulario
+        form = ItemForm(instance=item)
 
-    # Agregar datos adicionales al contexto para rellenar los menús desplegables
+    # Obtener datos adicionales
     tipos = Tipo.objects.all()
     colores = Color.objects.all()
     revestimientos = Revestimiento.objects.all()
 
     return render(request, 'nuevo_item.html', {
         'form': form,
-        'presupuesto': item.presupuesto,  # El presupuesto asociado al ítem
+        'presupuesto': item.presupuesto,
         'tipos': tipos,
         'colores': colores,
         'revestimientos': revestimientos,
-        'item': item,  # Pasa el ítem para que se utilice en la plantilla
+        'item': item,
     })
 
 
@@ -128,7 +127,10 @@ def detalle_presupuesto(request, presupuesto_id):
 
     # Calcular los costos totales y los costos filtrados por tipo_insumo
     items_con_costos = [
-        {'item': item, 'costo': item.calcular_costo()} for item in items
+        {'item': item, 
+         'costo': item.calcular_costo(),
+         'desperdicio': item.desperdicio} 
+         for item in items
     ]
     sub_total = sum(entry['costo'] for entry in items_con_costos)
 
@@ -209,6 +211,19 @@ def detalle_insumos_presupuesto(request, presupuesto_id):
         .annotate(
             total_cantidad=Sum('cantidad_usada'),
             total_precio=Sum('precio_total'),
+            total_cantidad_desperdicio=Sum(
+                Case(
+                    When(
+                        insumo__tipo_insumo__id=1,  # Condición para tipo_insumo_id=1
+                        then=ExpressionWrapper(
+                            F('cantidad_usada') * ((F('item__desperdicio') / 100.0) + 1.0),
+                            output_field=DecimalField(max_digits=10, decimal_places=2)
+                        )
+                    ),
+                    default=F('cantidad_usada'),  # Para otros casos
+                    output_field=DecimalField(max_digits=10, decimal_places=2)
+                )
+            )
         )
         .order_by('insumo__tipo_insumo__id', 'insumo__codigo')  # Orden descendente por tipo_insumo_id, luego por código
     )
@@ -237,11 +252,44 @@ def detalle_insumos(request, item_id):
     Vista para mostrar los insumos asociados a un ítem.
     """
     item = get_object_or_404(Item, id=item_id)
-    detalles = DetalleInsumo.objects.filter(item=item).order_by('id')
-    
+
+    # Obtener los detalles con todos los campos necesarios y calcular cantidad_desperdicio y precio_total
+    detalles = (
+        DetalleInsumo.objects.filter(item=item)
+        .values(
+            'insumo__codigo',  # Código del insumo
+            'insumo__descripcion',  # Descripción del insumo
+            'cantidad_usada',  # Cantidad usada
+            'precio_unitario',  # Precio unitario
+        )
+        .annotate(
+            # Calcular cantidad_desperdicio
+            cantidad_desperdicio=Case(
+                # Solo aplica cálculo con desperdicio si tipo_insumo_id=1
+                When(insumo__tipo_insumo__id=1, then=ExpressionWrapper(
+                    F('cantidad_usada') * ((F('item__desperdicio') / 100.0) + 1.0),
+                    output_field=DecimalField(max_digits=10, decimal_places=2)
+                )),
+                # Caso contrario, simplemente usa la cantidad usada
+                default=F('cantidad_usada'),
+                output_field=DecimalField(max_digits=10, decimal_places=2)
+            ),
+            # Calcular precio_total basado en cantidad_desperdicio * precio_unitario
+            precio_total=ExpressionWrapper(
+                Case(
+                    When(insumo__tipo_insumo__id=1, then=F('cantidad_usada') * (1 + F('item__desperdicio') / 100)),
+                    default=F('cantidad_usada'),
+                    output_field=DecimalField(max_digits=10, decimal_places=2)
+                ) * F('precio_unitario'),
+                output_field=DecimalField(max_digits=10, decimal_places=2)
+            )
+        )
+        .order_by('id')  # Orden por ID del detalle
+    )
+
     # Agrupar por tipo_insumo y sumar los valores
     resumen_tipo_insumo = (
-        detalles
+        DetalleInsumo.objects.filter(item=item)
         .values('insumo__tipo_insumo__nombre')
         .annotate(total_valor=Sum('precio_total'))
         .order_by('insumo__tipo_insumo__id')
@@ -249,7 +297,7 @@ def detalle_insumos(request, item_id):
 
     return render(request, 'detalle_insumos.html', {
         'item': item,
-        'detalles': detalles,
+        'detalles': detalles,  # Incluye los detalles con cantidad_desperdicio y precio_total
         'resumen_tipo_insumo': resumen_tipo_insumo,
     })
 
