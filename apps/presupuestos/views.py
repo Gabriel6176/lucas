@@ -381,3 +381,34 @@ def cambiar_color_presupuesto(request, presupuesto_id):
         return JsonResponse({'status': 'success', 'message': 'Color actualizado correctamente.'})
 
     return JsonResponse({'status': 'error', 'message': 'Método no permitido.'}, status=405)
+
+@login_required
+def cambiar_desperdicio_presupuesto(request, presupuesto_id):
+    """
+    Cambia el porcentaje de desperdicio de todos los ítems de un presupuesto y recalcula insumos.
+    """
+    if request.method == 'POST':
+        import json
+        data = json.loads(request.body)
+        nuevo_desperdicio = data.get('desperdicio')  # Nuevo porcentaje de desperdicio
+        presupuesto = get_object_or_404(Presupuesto, numero=presupuesto_id)
+
+        try:
+            # Convertir a Decimal y validar que sea un número positivo
+            nuevo_desperdicio = Decimal(nuevo_desperdicio)
+            if nuevo_desperdicio < 0:
+                return JsonResponse({'status': 'error', 'message': 'El desperdicio no puede ser negativo.'}, status=400)
+        except (TypeError, ValueError):
+            return JsonResponse({'status': 'error', 'message': 'Valor de desperdicio inválido.'}, status=400)
+
+        # Actualizar el desperdicio en todos los ítems del presupuesto
+        items = presupuesto.items.all()
+        items.update(desperdicio=nuevo_desperdicio)
+
+        # Recalcular los insumos de cada ítem
+        for item in items:
+            item.calcular_insumos()
+
+        return JsonResponse({'status': 'success', 'message': 'Desperdicio actualizado correctamente.'})
+
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido.'}, status=405)

@@ -54,7 +54,11 @@
                             </a>
                         </th>
                         <th class="text-center" scope="col">Revestimiento</th>
-                        <th class="text-center" scope="col">Desperdicio %</th>
+                        <th class="text-center" scope="col">
+                            <a href="#" id="cambiar-desperdicio" class="text-primary" data-bs-toggle="modal" data-bs-target="#modalCambiarDesperdicio">
+                                Desperdicio %
+                            </a>
+                        </th>
                         <th class="text-center" scope="col">Costo</th>
                         <th class="text-center" scope="col">Acciones</th>
                     </tr>
@@ -215,6 +219,26 @@
         </div>
     </div>
 </div>
+<!-- Modal para cambiar desperdicio -->
+<div class="modal fade" id="modalCambiarDesperdicio" tabindex="-1" role="dialog" aria-labelledby="modalCambiarDesperdicioLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalCambiarDesperdicioLabel">Cambiar Desperdicio</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formCambiarDesperdicio">
+                    <div class="mb-3">
+                        <label for="desperdicio-input" class="form-label">Introduce un nuevo valor de desperdicio (%):</label>
+                        <input type="number" id="desperdicio-input" class="form-control" name="desperdicio" min="0" step="0.01" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Cambiar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
     document.getElementById('formCambiarColor').addEventListener('submit', function (e) {
@@ -247,7 +271,44 @@
         });
     });
     </script>
+<script>
+    document.getElementById('formCambiarDesperdicio').addEventListener('submit', function (e) {
+        e.preventDefault();
     
+        // Obtener el nuevo valor de desperdicio
+        const nuevoDesperdicio = document.getElementById('desperdicio-input').value;
+    
+        // Validar que el valor sea numérico y positivo
+        if (nuevoDesperdicio < 0) {
+            alert('El valor de desperdicio no puede ser negativo.');
+            return;
+        }
+    
+        // Enviar la solicitud POST al servidor
+        fetch("{% url 'cambiar_desperdicio_presupuesto' presupuesto.numero %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ desperdicio: nuevoDesperdicio })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert(data.message);
+                location.reload(); // Recargar la página para reflejar los cambios
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Hubo un error al cambiar el desperdicio.');
+        });
+    });
+    </script>
+        
     
 {% endblock %} 
 

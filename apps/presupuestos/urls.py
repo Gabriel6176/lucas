@@ -41,6 +41,11 @@ urlpatterns = [
     path(
     'presupuesto/<int:presupuesto_id>/cambiar_color/',
     presupuestos_views.cambiar_color_presupuesto,
-    name='cambiar_color_presupuesto'
-),
+    name='cambiar_color_presupuesto'),
+
+    path(
+    'presupuesto/<int:presupuesto_id>/cambiar_desperdicio/',
+    presupuestos_views.cambiar_desperdicio_presupuesto,
+    name='cambiar_desperdicio_presupuesto'),
+    
 ]
