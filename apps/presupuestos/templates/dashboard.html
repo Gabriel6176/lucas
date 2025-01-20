@@ -19,19 +19,22 @@
                     <th scope="col">Lugar de la Obra</th>
                     <th scope="col">Fecha</th>
                     <th scope="col">Hora</th>
+                    <th class="text-end">Total</th>
                     <th scope="col">Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                {% for presupuesto in presupuestos %}
+                {% for presupuesto,total in presupuestos %}
                     <tr>
                         <th scope="row">{{ presupuesto.numero }}</th>
                         <td>{{ presupuesto.cliente }}</td>
                         <td>{{ presupuesto.lugar.nombre|default:"No especificado" }}</td>
                         <td>{{ presupuesto.fecha|date:"d/m/Y" }}</td>
                         <td>{{ presupuesto.fecha|date:"H:i" }}</td>
+                        <td class="text-end">${{ total|floatformat:2 }}</td>
                         <td>
                             <a href="{% url 'detalle_presupuesto' presupuesto.numero %}" class="btn btn-info btn-sm">Ver</a>
+
                             <a href="{% url 'eliminar_presupuesto' presupuesto.numero %}" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar este presupuesto?')">Eliminar
                             </a>
                             <a href="{% url 'recalcular_presupuesto' presupuesto.numero %}" class="btn btn-warning btn-sm" onclick="return confirm('¿Estás seguro de que deseas recalcular los insumos para este presupuesto?')"> Recalcular </a>

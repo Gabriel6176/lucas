@@ -16,7 +16,39 @@ def dashboard(request):
     Lista todos los presupuestos existentes con opciones para crear nuevos.
     """
     presupuestos = Presupuesto.objects.all().order_by('-fecha')  # Ordenar por fecha
-    return render(request, 'dashboard.html', {'presupuestos': presupuestos})
+
+    # Agregar el total para cada presupuesto
+    presupuestos_con_totales = []
+    for presupuesto in presupuestos:
+        # Obtener todos los ítems del presupuesto
+        items = presupuesto.items.all()
+
+        # Calcular sub_total sumando el costo de cada ítem
+        sub_total = sum(item.calcular_costo() for item in items)
+
+        # Calcular subtotal de insumos con tipo_insumo_id=1
+        insumos = DetalleInsumo.objects.filter(presupuesto=presupuesto)
+        subtotal_tipo_1 = insumos.filter(insumo__tipo_insumo_id=1).aggregate(
+            subtotal=Sum('precio_total')
+        )['subtotal'] or Decimal(0)
+
+        # Calcular subtotal de insumos con tipo_insumo_id en [1, 3, 4, 5, 6]
+        subtotal_tipo_2 = insumos.filter(insumo__tipo_insumo_id__in=[1, 3, 4, 5, 6]).aggregate(
+            subtotal=Sum('precio_total')
+        )['subtotal'] or Decimal(0)
+
+        # Calcular costos adicionales
+        mano_obra = subtotal_tipo_1 * Decimal("0.30")
+        venta = subtotal_tipo_1 * Decimal("0.15")
+        utilidad = subtotal_tipo_1 * Decimal("0.80")
+        flete = subtotal_tipo_2 * Decimal("0.08")
+
+        # Calcular total
+        total = sub_total + mano_obra + venta + utilidad + flete
+
+        presupuestos_con_totales.append((presupuesto,total))
+
+    return render(request, 'dashboard.html', {'presupuestos': presupuestos_con_totales})
 
 @login_required
 def presupuesto_nuevo(request):
