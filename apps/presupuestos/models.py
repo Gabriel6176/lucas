@@ -129,8 +129,11 @@ class Item(models.Model):
         # Eliminar insumos previamente calculados
         DetalleInsumo.objects.filter(item=self).delete()
 
+        # Obtener IDs de colores disponibles dinámicamente
+        color_ids = list(Color.objects.values_list('id', flat=True))
+
         # Filtrar insumos por color
-        if self.color.id in [1, 2, 3]:  # Ejemplo: Blanco, Simil Madera, Negro
+        if self.color.id in color_ids:  # Si el color actual está en la lista de colores
             insumos = Insumo.objects.filter(color=self.color)
         else:
             insumos = Insumo.objects.filter(color__isnull=True)
