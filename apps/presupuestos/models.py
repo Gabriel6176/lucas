@@ -109,7 +109,7 @@ class Item(models.Model):
     color = models.ForeignKey(Color, on_delete=models.CASCADE)  # Color del ítem
     revestimiento = models.ForeignKey(Revestimiento, on_delete=models.CASCADE)  # Tipo de revestimiento
     desperdicio = models.DecimalField(max_digits=5, decimal_places=2, default=0.0)  # Porcentaje de desperdicio
-
+    mosquitero = models.BooleanField(default=False, null=True, blank=True)
     
 
     @property

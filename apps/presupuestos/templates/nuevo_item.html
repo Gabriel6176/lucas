@@ -44,6 +44,15 @@
                             </select>
                         </div>
                         
+                        <!-- Mosquitero -->
+                        <div class="form-group mb-3" id="mosquiteroGroup" style="display: none;">
+                            <label for="mosquitero">Mosquitero</label>
+                            <div class="form-check">
+                                <input type="checkbox" id="mosquitero" name="mosquitero" class="form-check-input" 
+                                    {% if form.mosquitero.value %}checked{% endif %}>
+                                <label class="form-check-label" for="mosquitero">Incluir Mosquitero</label>
+                            </div>
+                        </div>
                         <!-- Revestimiento (Maneja Alto Lama) -->
                         <div class="form-group mb-3">
                             <label for="revestimiento">Revestimiento</label>
@@ -133,6 +142,31 @@
         toggleAnchoHoja();
         toggleAltoLama();
     });
+
+    const tiposConMosquitero = [2, 3, 4, 5, 9, 10, 11, 12];
+
+    function toggleMosquitero() {
+        const tipo = document.getElementById('tipo').value;
+        const mosquiteroGroup = document.getElementById('mosquiteroGroup');
+
+        if (tiposConMosquitero.includes(parseInt(tipo))) {
+            mosquiteroGroup.style.display = 'block';
+        } else {
+            mosquiteroGroup.style.display = 'none';
+            document.getElementById('mosquitero').checked = false;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        toggleAnchoHoja();
+        toggleAltoLama();
+        toggleMosquitero();
+    });
+
+    document.getElementById('tipo').addEventListener('change', () => {
+        toggleMosquitero();
+    });
+
 </script>
 {% endblock %}
 
