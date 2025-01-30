@@ -8,6 +8,27 @@ from collections import defaultdict
 from django.contrib import messages
 from django.utils.timezone import now
 from django.db.models import Sum, F, ExpressionWrapper, Case, When, DecimalField
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+import weasyprint, cairocffi
+from weasyprint import HTML
+
+@login_required
+def imprimir_detalle_presupuesto(request, presupuesto_numero):
+    presupuesto = get_object_or_404(Presupuesto, numero=presupuesto_numero)
+    detalles = presupuesto.detalles.all()  # Ajusta según tu modelo
+    resumen_tipo_insumo = presupuesto.resumen_tipo_insumo()  # Ajusta según tu lógica
+
+    html_content = render_to_string('detalle_insumos_presupuesto.html', {
+        'presupuesto': presupuesto,
+        'detalles': detalles,
+        'resumen_tipo_insumo': resumen_tipo_insumo,
+    })
+    pdf = HTML(string=html_content).write_pdf()
+
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="detalle_presupuesto_{presupuesto_numero}.pdf"'
+    return response
 
 @login_required
 def dashboard(request):

@@ -31,21 +31,16 @@ urlpatterns = [
     # Eliminar Presupuesto
     path('presupuesto/<int:presupuesto_id>/eliminar/', presupuestos_views.eliminar_presupuesto, name='eliminar_presupuesto'),
 
-
     path('item/<int:item_id>/detalle_insumos/', presupuestos_views.detalle_insumos, name='detalle_insumos'),
 
     path('presupuesto/<int:presupuesto_id>/recalcular/', presupuestos_views.recalcular_presupuesto, name='recalcular_presupuesto'),
 
     path('detalle_insumos_presupuesto/<int:presupuesto_id>/', presupuestos_views.detalle_insumos_presupuesto, name='detalle_insumos_presupuesto'),
 
-    path(
-    'presupuesto/<int:presupuesto_id>/cambiar_color/',
-    presupuestos_views.cambiar_color_presupuesto,
-    name='cambiar_color_presupuesto'),
+    path('presupuesto/<int:presupuesto_id>/cambiar_color/', presupuestos_views.cambiar_color_presupuesto, name='cambiar_color_presupuesto'),
 
-    path(
-    'presupuesto/<int:presupuesto_id>/cambiar_desperdicio/',
-    presupuestos_views.cambiar_desperdicio_presupuesto,
-    name='cambiar_desperdicio_presupuesto'),
+    path('presupuesto/<int:presupuesto_id>/cambiar_desperdicio/', presupuestos_views.cambiar_desperdicio_presupuesto, name='cambiar_desperdicio_presupuesto'),
+
+    path('imprimir/detalle_presupuesto/<int:presupuesto_numero>/', presupuestos_views.imprimir_detalle_presupuesto, name='imprimir_detalle_presupuesto'),
     
 ]

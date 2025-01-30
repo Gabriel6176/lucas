@@ -84,7 +84,7 @@ class DetalleInsumo(models.Model):
     """
     Modelo para almacenar los detalles de insumos utilizados en un presupuesto.
     """
-    presupuesto = models.ForeignKey(Presupuesto, on_delete=models.CASCADE)  # Relación con el presupuesto
+    presupuesto = models.ForeignKey(Presupuesto, on_delete=models.CASCADE, related_name='detalles')  # Relación con el presupuesto
     item = models.ForeignKey('Item', on_delete=models.CASCADE, related_name='detalles')  # Relación con el ítem
     insumo = models.ForeignKey(Insumo, on_delete=models.CASCADE)  # Relación con el insumo
     cantidad_usada = models.DecimalField(max_digits=10, decimal_places=2)  # Cantidad calculada del insumo
