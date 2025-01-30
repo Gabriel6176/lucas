@@ -160,7 +160,7 @@ class Item(models.Model):
 
             try:
                 # Calcular cantidad basada en fórmula
-                cantidad = eval(insumo.formula, {}, formula_context)
+                cantidad = eval(insumo.formula, {}, formula_context) * self.cantidad
                 cantidad = max(0, round(float(cantidad), 2))
             except Exception as e:
                 cantidad = 0
