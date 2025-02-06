@@ -29,6 +29,11 @@
                             <td class="text-end">{{ tipo_insumo.total_valor|floatformat:2 }}</td>
                         </tr>
                         {% endfor %}
+                        <!-- Fila para el total -->
+                        <tr>
+                            <td><strong>Total</strong></td>
+                            <td class="text-end"><strong>{{ valor_total|floatformat:2 }}</strong></td>
+                        </tr>
                     </tbody>
                 </table>
             </div>

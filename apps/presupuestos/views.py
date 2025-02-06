@@ -37,8 +37,8 @@ def dashboard(request):
             subtotal=Sum('precio_total')
         )['subtotal'] or Decimal(0)
 
-        # Calcular subtotal de insumos con tipo_insumo_id en [1, 3, 4, 5, 6]
-        subtotal_tipo_2 = insumos.filter(insumo__tipo_insumo_id__in=[1, 3, 4, 5, 6]).aggregate(
+        # Calcular subtotal de insumos con tipo_insumo_id en [1, 3, 4, 5, 6, 7]
+        subtotal_tipo_2 = insumos.filter(insumo__tipo_insumo_id__in=[1, 3, 4, 5, 6, 7]).aggregate(
             subtotal=Sum('precio_total')
         )['subtotal'] or Decimal(0)
 
@@ -193,7 +193,7 @@ def detalle_presupuesto(request, presupuesto_id):
     )['subtotal'] or Decimal(0)
 
     # Calcular subtotal de insumos con tipo_insumo_id en [1, 3, 4, 5, 6]
-    subtotal_tipo_2 = insumos.filter(insumo__tipo_insumo_id__in=[1, 3, 4, 5, 6]).aggregate(
+    subtotal_tipo_2 = insumos.filter(insumo__tipo_insumo_id__in=[1, 3, 4, 5, 6, 7]).aggregate(
         subtotal=Sum('precio_total')
     )['subtotal'] or Decimal(0)
 
@@ -275,10 +275,14 @@ def detalle_insumos_presupuesto(request, presupuesto_id):
         .order_by('insumo__tipo_insumo__id')
     )
 
+    # Calcular el valor total final
+    valor_total = resumen_tipo_insumo.aggregate(Sum('total_valor'))['total_valor__sum'] or 0
+
     return render(request, 'detalle_insumos_presupuesto.html', {
         'presupuesto': presupuesto,
         'detalles': detalles,  # Detalles agrupados por código de insumo
         'resumen_tipo_insumo': resumen_tipo_insumo,  # Resumen por tipo de insumo
+        'valor_total': valor_total,
     })
 
 
@@ -330,10 +334,14 @@ def detalle_insumos(request, item_id):
         .order_by('insumo__tipo_insumo__id')
     )
 
+    # Calcular el valor total final
+    valor_total = resumen_tipo_insumo.aggregate(Sum('total_valor'))['total_valor__sum'] or 0
+
     return render(request, 'detalle_insumos.html', {
         'item': item,
         'detalles': detalles,  # Incluye los detalles con cantidad_desperdicio y precio_total
         'resumen_tipo_insumo': resumen_tipo_insumo,
+        'valor_total': valor_total,  # Pasar el valor total al template
     })
 
 @login_required

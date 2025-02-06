@@ -48,6 +48,7 @@
                         <th class="text-center" scope="col">Cantidad</th>
                         <th class="text-center" scope="col">Ancho</th>
                         <th class="text-center" scope="col">Alto</th>
+                        <th class="text-center" scope="col">Mosquitero</th>
                         <th class="text-center" scope="col">
                             <a href="#" id="cambiar-color" class="text-primary" data-bs-toggle="modal" data-bs-target="#modalCambiarColor">
                                 Color
@@ -71,16 +72,17 @@
                             <td class="text-center">{{ entry.item.cantidad }}</td>
                             <td class="text-center">{{ entry.item.ancho }}</td>
                             <td class="text-center">{{ entry.item.alto }}</td>
+                            <td class="text-center">{{ entry.item.mosquitero|yesno:"Sí,No" }}</td>
                             <td class="text-center">{{ entry.item.color.nombre }}</td>
                             <td class="text-center">{{ entry.item.revestimiento.nombre }}</td>
                             <td class="text-center">{{ entry.item.desperdicio }}</td>
                             <td class="text-end">${{ entry.costo|intcomma }}</td>
                             <td class="text-center">
-                                <a href="{% url 'editar_item' entry.item.id %}" class="btn btn-warning btn-sm">Editar</a>
-                                <a href="{% url 'eliminar_item' entry.item.id %}" class="btn btn-danger btn-sm" 
-                                onclick="return confirm('¿Estás seguro de que deseas eliminar este ítem?')">Eliminar</a>
-                                <a href="{% url 'detalle_insumos' entry.item.id %}" class="btn btn-info btn-sm">Ver Insumos</a>
-
+                                <div style="display: flex; gap: 5px; justify-content: center;">
+                                    <a href="{% url 'editar_item' entry.item.id %}" class="btn btn-warning btn-sm">Editar</a>
+                                    <a href="{% url 'eliminar_item' entry.item.id %}" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar este ítem?')">Eliminar</a>
+                                    <a href="{% url 'detalle_insumos' entry.item.id %}" class="btn btn-info btn-sm">Insumos</a>
+                                </div>
                             </td>
                         </tr>
                     {% endfor %}

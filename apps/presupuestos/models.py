@@ -154,17 +154,23 @@ class Item(models.Model):
                 'ALTO_LAMA': (
                     float(self.alto) / 100 if self.revestimiento.id == 6
                     else float(self.alto_lama or 0) if self.revestimiento.id == 8
-                    else 0
-                ),
+                    else 0),
+                'MOSQUITERO': 1 if self.mosquitero else 0,  # Convierte el booleano en 1 (Sí) o 0 (No)
             }
-
+            
             try:
                 # Calcular cantidad basada en fórmula
-                cantidad = eval(insumo.formula, {}, formula_context) * self.cantidad
-                cantidad = max(0, round(float(cantidad), 2))
+                #print(f"FORMULA: {insumo.formula}")
+                resultado_fórmula = eval(insumo.formula, {}, formula_context)
+                #print(f"Resultado de la fórmula: {resultado_fórmula}")
+                cantidad = resultado_fórmula * self.cantidad
+                #print(f"Cantidad final (después de multiplicar por self.cantidad): {cantidad}")
+
+                
+
             except Exception as e:
                 cantidad = 0
-
+            #print(insumo, cantidad)
             if cantidad > 0:
                 # Condicional para calcular cantidad_desperdicio solo para tipo_insumo_id=1
                 if insumo.tipo_insumo and insumo.tipo_insumo.id == 1:
@@ -174,7 +180,7 @@ class Item(models.Model):
 
                 # Calcular el precio total usando cantidad_desperdicio
                 precio_total = cantidad_desperdicio * insumo.precio
-                print(insumo.codigo, insumo.descripcion, precio_total)
+                #print(insumo.codigo, insumo.descripcion, precio_total)
                 detalle = DetalleInsumo(
                     presupuesto=self.presupuesto,
                     item=self,
@@ -184,7 +190,7 @@ class Item(models.Model):
                     precio_total=precio_total,
                 )
                 detalles.append(detalle)
-
+                
         # Crear los nuevos detalles de insumos en la base de datos
         DetalleInsumo.objects.bulk_create(detalles)
 
