@@ -10,7 +10,7 @@ tabla = 'presupuestos_insumo'
 try:
     # Leer el archivo Excel y omitir la primera fila (títulos)
     print("Leyendo el archivo Excel...")
-    df = pd.read_excel(excel_file, sheet_name=sheet_name, usecols="A:G", header=0, skiprows=1)
+    df = pd.read_excel(excel_file, sheet_name=sheet_name, usecols="A:G", header=0)
     df.columns = ["codigo", "descripcion", "precio", "unidad_medida", "formula", "color_id", "tipo_insumo_id"]
 
     # Convertir valores nulos a None

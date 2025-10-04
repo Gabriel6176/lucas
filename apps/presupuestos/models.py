@@ -152,19 +152,20 @@ class Item(models.Model):
                 'DESPERDICIO': float(self.desperdicio) / 100,
                 'REVESTIMIENTO': int(self.revestimiento.id),
                 'ALTO_LAMA': (
-                    float(self.alto) / 100 if self.revestimiento.id == 6
+                    float(self.alto_lama) if self.revestimiento.id == 6
                     else float(self.alto_lama or 0) if self.revestimiento.id == 8
                     else 0),
                 'MOSQUITERO': 1 if self.mosquitero else 0,  # Convierte el booleano en 1 (Sí) o 0 (No)
             }
             
             try:
+                print(insumo)
                 # Calcular cantidad basada en fórmula
-                #print(f"FORMULA: {insumo.formula}")
+                print(f"FORMULA: {insumo.formula}")
                 resultado_fórmula = eval(insumo.formula, {}, formula_context)
-                #print(f"Resultado de la fórmula: {resultado_fórmula}")
+                print(f"Resultado de la fórmula: {resultado_fórmula}")
                 cantidad = resultado_fórmula * self.cantidad
-                #print(f"Cantidad final (después de multiplicar por self.cantidad): {cantidad}")
+                print(f"Cantidad final (después de multiplicar por self.cantidad): {cantidad}")
 
                 
 

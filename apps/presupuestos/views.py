@@ -43,10 +43,10 @@ def dashboard(request):
         )['subtotal'] or Decimal(0)
 
         # Calcular costos adicionales
-        mano_obra = subtotal_tipo_1 * Decimal("0.30")
-        venta = subtotal_tipo_1 * Decimal("0.15")
-        utilidad = subtotal_tipo_1 * Decimal("0.80")
-        flete = subtotal_tipo_2 * Decimal("0.08")
+        mano_obra = subtotal_tipo_1 * Decimal("0.40")
+        venta = subtotal_tipo_1 * Decimal("0.30")
+        utilidad = subtotal_tipo_1 * Decimal("0.85")
+        flete = subtotal_tipo_2 * Decimal("0.12")
 
         # Calcular total
         total = sub_total + mano_obra + venta + utilidad + flete
@@ -80,12 +80,26 @@ def nuevo_item(request, presupuesto_id):
 
     if request.method == 'POST':
         form = ItemForm(request.POST)
+        print(f"Formulario válido: {form.is_valid()}")
         if form.is_valid():
+            print("Datos del formulario:")
+            for field, value in form.cleaned_data.items():
+                print(f"  {field}: {value}")
+            
             item = form.save(commit=False)
             item.presupuesto = presupuesto
             item.save()
+            print(f"Item creado con ID: {item.id}")
+            print(f"Tipo: {item.tipo.detalle} (ID: {item.tipo.id})")
+            print(f"Revestimiento: {item.revestimiento.nombre} (ID: {item.revestimiento.id})")
+            print(f"Alto Lama: {item.alto_lama}")
+            
             item.calcular_insumos()
             return redirect('detalle_presupuesto', presupuesto_id=presupuesto.numero)
+        else:
+            print("Errores del formulario:")
+            for field, errors in form.errors.items():
+                print(f"  {field}: {errors}")
     else:
         form = ItemForm()
 
@@ -198,10 +212,10 @@ def detalle_presupuesto(request, presupuesto_id):
     )['subtotal'] or Decimal(0)
 
     # Calcular costos adicionales
-    mano_obra = subtotal_tipo_1 * Decimal("0.30")
-    venta = subtotal_tipo_1 * Decimal("0.15")
-    utilidad = subtotal_tipo_1 * Decimal("0.80")  # Utilidad solo sobre tipo_insumo_id=1
-    flete = subtotal_tipo_2 * Decimal("0.08") # Utilidad solo sobre tipo_insumo_id=1+3+4+5+6
+    mano_obra = subtotal_tipo_1 * Decimal("0.40")
+    venta = subtotal_tipo_1 * Decimal("0.30")
+    utilidad = subtotal_tipo_1 * Decimal("0.85")  # Utilidad solo sobre tipo_insumo_id=1
+    flete = subtotal_tipo_2 * Decimal("0.12") # Utilidad solo sobre tipo_insumo_id=1+3+4+5+6
     total = sub_total + mano_obra + venta + utilidad + flete
 
     # Evitar división por cero
