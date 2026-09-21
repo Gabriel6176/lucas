@@ -1,7 +1,7 @@
 from django.db import models
 from sympy import sympify
-from decimal import Decimal, ROUND_HALF_UP
-from sympy import N,Piecewise
+from decimal import Decimal, ROUND_HALF_UP, InvalidOperation
+from sympy import N, Piecewise
 
 
 class Lugar(models.Model):
@@ -54,6 +54,65 @@ class Presupuesto(models.Model):
     def __str__(self):
         return f"Presupuesto {self.numero} - {self.cliente}"
 
+
+class PorcentajeConfiguracion(models.Model):
+    """
+    Modelo para definir los porcentajes utilizados en las configuraciones del presupuesto.
+    Solo puede haber una configuración activa a la vez.
+    """
+    nombre = models.CharField(max_length=100, unique=True, help_text="Nombre identificativo de esta configuración")
+    mano_obra_porcentaje = models.DecimalField(
+        max_digits=5, 
+        decimal_places=2, 
+        default=40,
+        help_text="Porcentaje de mano de obra (ej: 40 = 40%)"
+    )
+    venta_porcentaje = models.DecimalField(
+        max_digits=5, 
+        decimal_places=2, 
+        default=30,
+        help_text="Porcentaje de venta (ej: 30 = 30%)"
+    )
+    utilidad_porcentaje = models.DecimalField(
+        max_digits=5, 
+        decimal_places=2, 
+        default=85,
+        help_text="Porcentaje de utilidad (ej: 85 = 85%)"
+    )
+    flete_porcentaje = models.DecimalField(
+        max_digits=5, 
+        decimal_places=2, 
+        default=12,
+        help_text="Porcentaje de flete (ej: 12 = 12%)"
+    )
+    activo = models.BooleanField(default=True, help_text="Indica si esta es la configuración activa")
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_modificacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Configuraión de Porcentajes"
+        verbose_name_plural = "Configuraciones de Porcentajes"
+
+    def save(self, *args, **kwargs):
+        # Si esta configuración está siendo marcada como activa, desactivar todas las demás
+        if self.activo:
+            PorcentajeConfiguracion.objects.filter(activo=True).update(activo=False)
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def get_configuracion_activa(cls):
+        """Retorna la configuración activa o crea una por defecto si no existe ninguna"""
+        configuracion = cls.objects.filter(activo=True).first()
+        if not configuracion:
+            configuracion = cls.objects.create(
+                nombre="Configuración por Defecto",
+                activo=True
+            )
+        return configuracion
+
+    def __str__(self):
+        return f"{self.nombre} (Activa: {'Sí' if self.activo else 'No'})"
+
 class TipoInsumo(models.Model):
     """
     Modelo para definir los tipos de insumo disponibles.
@@ -87,9 +146,9 @@ class DetalleInsumo(models.Model):
     presupuesto = models.ForeignKey(Presupuesto, on_delete=models.CASCADE, related_name='detalles')  # Relación con el presupuesto
     item = models.ForeignKey('Item', on_delete=models.CASCADE, related_name='detalles')  # Relación con el ítem
     insumo = models.ForeignKey(Insumo, on_delete=models.CASCADE)  # Relación con el insumo
-    cantidad_usada = models.DecimalField(max_digits=10, decimal_places=2)  # Cantidad calculada del insumo
+    cantidad_usada = models.DecimalField(max_digits=14, decimal_places=2)  # Cantidad calculada del insumo
     precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)  # Precio unitario del insumo
-    precio_total = models.DecimalField(max_digits=10, decimal_places=2)  # Precio total (cantidad x precio unitario)
+    precio_total = models.DecimalField(max_digits=14, decimal_places=2)  # Precio total (cantidad x precio unitario)
 
     def __str__(self):
         return f"Presupuesto {self.presupuesto.numero} - Insumo {self.insumo.codigo}"
@@ -143,6 +202,8 @@ class Item(models.Model):
 
         detalles = []
         for insumo in insumos:
+            # Las medidas del formulario se interpretan en centímetros.
+            # Para las fórmulas se mantiene el sistema original (cm):
             formula_context = {
                 'CANTIDAD': float(self.cantidad_desperdicio),  # Usa cantidad con desperdicio
                 'ANCHO': float(self.ancho) / 100,
@@ -157,43 +218,55 @@ class Item(models.Model):
                     else 0),
                 'MOSQUITERO': 1 if self.mosquitero else 0,  # Convierte el booleano en 1 (Sí) o 0 (No)
             }
-            
+
             try:
                 print(insumo)
                 # Calcular cantidad basada en fórmula
                 print(f"FORMULA: {insumo.formula}")
                 resultado_fórmula = eval(insumo.formula, {}, formula_context)
                 print(f"Resultado de la fórmula: {resultado_fórmula}")
-                cantidad = resultado_fórmula * self.cantidad
-                print(f"Cantidad final (después de multiplicar por self.cantidad): {cantidad}")
+                cantidad_float = resultado_fórmula * self.cantidad
+                print(f"Cantidad final (después de multiplicar por self.cantidad): {cantidad_float}")
 
-                
+                # Convertir a Decimal de forma segura y redondear a 2 decimales
+                cantidad = Decimal(str(cantidad_float)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            except Exception:
+                cantidad = Decimal('0.00')
 
-            except Exception as e:
-                cantidad = 0
-            #print(insumo, cantidad)
             if cantidad > 0:
-                # Condicional para calcular cantidad_desperdicio solo para tipo_insumo_id=1
-                if insumo.tipo_insumo and insumo.tipo_insumo.id == 1:
-                    cantidad_desperdicio = Decimal(cantidad) * Decimal(1 + self.desperdicio / 100)
-                else:
-                    cantidad_desperdicio = Decimal(cantidad)  # Para otros, cantidad_desperdicio es igual a cantidad
+                try:
+                    # Condicional para calcular cantidad_desperdicio solo para tipo_insumo_id=1
+                    if insumo.tipo_insumo and insumo.tipo_insumo.id == 1:
+                        factor_desperdicio = Decimal('1') + (self.desperdicio / Decimal('100'))
+                        cantidad_desperdicio = (cantidad * factor_desperdicio).quantize(
+                            Decimal('0.01'),
+                            rounding=ROUND_HALF_UP,
+                        )
+                    else:
+                        cantidad_desperdicio = cantidad
 
-                # Calcular el precio total usando cantidad_desperdicio
-                precio_total = cantidad_desperdicio * insumo.precio
-                #print(insumo.codigo, insumo.descripcion, precio_total)
+                    # Calcular el precio total usando cantidad_desperdicio y redondear a 2 decimales
+                    precio_total = (cantidad_desperdicio * insumo.precio).quantize(
+                        Decimal('0.01'),
+                        rounding=ROUND_HALF_UP,
+                    )
+                except (InvalidOperation, TypeError):
+                    # Si algo sale mal con los decimales, saltamos este insumo
+                    continue
+
                 detalle = DetalleInsumo(
                     presupuesto=self.presupuesto,
                     item=self,
                     insumo=insumo,
-                    cantidad_usada=Decimal(cantidad),
+                    cantidad_usada=cantidad,
                     precio_unitario=insumo.precio,
                     precio_total=precio_total,
                 )
                 detalles.append(detalle)
-                
+
         # Crear los nuevos detalles de insumos en la base de datos
-        DetalleInsumo.objects.bulk_create(detalles)
+        if detalles:
+            DetalleInsumo.objects.bulk_create(detalles)
 
     def calcular_costo(self):
         """

@@ -30,7 +30,19 @@
                     </div>
                     <div class="row">
                         <div class="col-6 text-start fw-bold">Cliente:</div>
-                        <div class="col-6 text-end">{{ presupuesto.cliente }}</div>
+                        <div class="col-6 text-end">
+                            <div class="d-flex justify-content-end align-items-center gap-2">
+                                <span>{{ presupuesto.cliente }}</span>
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-secondary btn-sm"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalEditarCliente"
+                                >
+                                    Editar
+                                </button>
+                            </div>
+                        </div>
                     </div>
             </div>
         </div>
@@ -137,7 +149,7 @@
                     <hr>
                     <div class="row">
                         <div class="col-6 text-start">
-                            <h5>Mano de Obra - 40%:</h5>
+                            <h5>Mano de Obra - {{ mano_obra_porcentaje }}%:</h5>
                         </div>
                         <div class="col-6 text-end">
                             <h5>${{ mano_obra|floatformat:2|intcomma }}</h5>
@@ -145,7 +157,7 @@
                     </div>
                     <div class="row">
                         <div class="col-6 text-start">
-                            <h5>Venta - 30%:</h5>
+                            <h5>Venta - {{ venta_porcentaje }}%:</h5>
                         </div>
                         <div class="col-6 text-end">
                             <h5>${{ venta|floatformat:2|intcomma }}</h5>
@@ -153,7 +165,7 @@
                     </div>
                     <div class="row">
                         <div class="col-6 text-start">
-                            <h5>Utilidad - 85%:</h5>
+                            <h5>Utilidad - {{ utilidad_porcentaje }}%:</h5>
                         </div>
                         <div class="col-6 text-end">
                             <h5>${{ utilidad|floatformat:2|intcomma }}</h5>
@@ -161,7 +173,7 @@
                     </div>
                     <div class="row">
                         <div class="col-6 text-start">
-                            <h5>Flete (12%):</h5>
+                            <h5>Flete - {{ flete_porcentaje }}%:</h5>
                         </div>
                         <div class="col-6 text-end">
                             <h5>${{ flete|floatformat:2|intcomma }}</h5>
@@ -238,6 +250,39 @@
                     <button type="submit" class="btn btn-primary">Cambiar</button>
                 </form>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para editar nombre del cliente -->
+<div class="modal fade" id="modalEditarCliente" tabindex="-1" aria-labelledby="modalEditarClienteLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalEditarClienteLabel">Editar nombre del cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'editar_cliente_presupuesto' presupuesto.numero %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="cliente-input" class="form-label">Nombre del cliente</label>
+                        <input
+                            type="text"
+                            id="cliente-input"
+                            name="cliente"
+                            class="form-control"
+                            value="{{ presupuesto.cliente }}"
+                            maxlength="255"
+                            required
+                        >
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

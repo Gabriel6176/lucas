@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Lugar, Tipo, Revestimiento, Color, Presupuesto, Item, Insumo, TipoInsumo
+from .models import Lugar, Tipo, Revestimiento, Color, Presupuesto, Item, Insumo, TipoInsumo, PorcentajeConfiguracion
 
 # Registrar los modelos
 @admin.register(Lugar)
@@ -42,3 +42,31 @@ class TipoInsumoAdmin(admin.ModelAdmin):
     list_display = ('id', 'nombre')
     list_filter = ('nombre',)
     ordering = ('id',)
+
+@admin.register(PorcentajeConfiguracion)
+class PorcentajeConfiguracionAdmin(admin.ModelAdmin):
+    list_display = ('nombre', 'mano_obra_porcentaje', 'venta_porcentaje', 'utilidad_porcentaje', 'flete_porcentaje', 'activo', 'fecha_creacion')
+    list_filter = ('activo', 'fecha_creacion')
+    search_fields = ('nombre',)
+    readonly_fields = ('fecha_creacion', 'fecha_modificacion')
+    
+    fieldsets = (
+        ('Información General', {
+            'fields': ('nombre', 'activo')
+        }),
+        ('Porcentajes de Cálculo', {
+            'fields': (
+                ('mano_obra_porcentaje', 'venta_porcentaje'),
+                ('utilidad_porcentaje', 'flete_porcentaje'),
+            ),
+            'description': 'Los porcentajes se especifican como números enteros (ej: 40 para 40%)'
+        }),
+        ('Información de Registro', {
+            'fields': ('fecha_creacion', 'fecha_modificacion'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def save_model(self, request, obj, form, change):
+        """Cuando se guarda una configuración activa, desactivar todas las demás"""
+        super().save_model(request, obj, form, change) 

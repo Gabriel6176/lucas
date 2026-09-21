@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from .models import Presupuesto, Item, Lugar, Tipo, Revestimiento, Color, DetalleInsumo
+from .models import Presupuesto, Item, Lugar, Tipo, Revestimiento, Color, DetalleInsumo, PorcentajeConfiguracion
 from .forms import PresupuestoForm, ItemForm
 from decimal import Decimal
 from collections import defaultdict
@@ -22,6 +22,9 @@ def dashboard(request):
     """
     presupuestos = Presupuesto.objects.all().order_by('-fecha')  # Ordenar por fecha
 
+    # Obtener configuración de porcentajes activa
+    configuracion = PorcentajeConfiguracion.get_configuracion_activa()
+    
     # Agregar el total para cada presupuesto
     presupuestos_con_totales = []
     for presupuesto in presupuestos:
@@ -42,11 +45,16 @@ def dashboard(request):
             subtotal=Sum('precio_total')
         )['subtotal'] or Decimal(0)
 
-        # Calcular costos adicionales
-        mano_obra = subtotal_tipo_1 * Decimal("0.40")
-        venta = subtotal_tipo_1 * Decimal("0.30")
-        utilidad = subtotal_tipo_1 * Decimal("0.85")
-        flete = subtotal_tipo_2 * Decimal("0.12")
+        # Calcular costos adicionales usando porcentajes de la configuración activa
+        mano_obra_factor = configuracion.mano_obra_porcentaje / Decimal("100")
+        venta_factor = configuracion.venta_porcentaje / Decimal("100")
+        utilidad_factor = configuracion.utilidad_porcentaje / Decimal("100")
+        flete_factor = configuracion.flete_porcentaje / Decimal("100")
+        
+        mano_obra = subtotal_tipo_1 * mano_obra_factor
+        venta = subtotal_tipo_1 * venta_factor
+        utilidad = subtotal_tipo_1 * utilidad_factor
+        flete = subtotal_tipo_2 * flete_factor
 
         # Calcular total
         total = sub_total + mano_obra + venta + utilidad + flete
@@ -101,7 +109,9 @@ def nuevo_item(request, presupuesto_id):
             for field, errors in form.errors.items():
                 print(f"  {field}: {errors}")
     else:
-        form = ItemForm()
+        # Preseleccionar revestimiento=6 para facilitar pruebas donde la fórmula
+        # del insumo depende de `REVESTIMIENTO == 6` (por ejemplo, vidrios)
+        form = ItemForm(initial={'revestimiento': 6})
 
     # Obtener datos de Tipo, Color y Revestimiento
     tipos = Tipo.objects.all()
@@ -211,11 +221,21 @@ def detalle_presupuesto(request, presupuesto_id):
         subtotal=Sum('precio_total')
     )['subtotal'] or Decimal(0)
 
-    # Calcular costos adicionales
-    mano_obra = subtotal_tipo_1 * Decimal("0.40")
-    venta = subtotal_tipo_1 * Decimal("0.30")
-    utilidad = subtotal_tipo_1 * Decimal("0.85")  # Utilidad solo sobre tipo_insumo_id=1
-    flete = subtotal_tipo_2 * Decimal("0.12") # Utilidad solo sobre tipo_insumo_id=1+3+4+5+6
+    # Obtener configuración de porcentajes activa
+    configuracion = PorcentajeConfiguracion.get_configuracion_activa()
+    
+    # Calcular factores de porcentajes
+    mano_obra_factor = configuracion.mano_obra_porcentaje / Decimal("100")
+    venta_factor = configuracion.venta_porcentaje / Decimal("100")
+    utilidad_factor = configuracion.utilidad_porcentaje / Decimal("100")
+    flete_factor = configuracion.flete_porcentaje / Decimal("100")
+    
+    # Calcular costos adicionales usando porcentajes de la configuración activa
+  
+    mano_obra = subtotal_tipo_1 * mano_obra_factor
+    venta = subtotal_tipo_1 * venta_factor
+    utilidad = subtotal_tipo_1 * utilidad_factor  # Utilidad solo sobre tipo_insumo_id=1
+    flete = subtotal_tipo_2 * flete_factor # Utilidad solo sobre tipo_insumo_id=1+3+4+5+6
     total = sub_total + mano_obra + venta + utilidad + flete
 
     # Evitar división por cero
@@ -234,7 +254,28 @@ def detalle_presupuesto(request, presupuesto_id):
         'total_m2': total_m2,  # Agregar Total m2 al contexto
         'precio_por_m2': precio_por_m2,  # Agregar el precio por m² al contexto
         'tipo_insumos_totales': dict(tipo_insumos_totales),
+        'mano_obra_porcentaje': configuracion.mano_obra_porcentaje,
+        'venta_porcentaje': configuracion.venta_porcentaje,
+        'utilidad_porcentaje': configuracion.utilidad_porcentaje,
+        'flete_porcentaje': configuracion.flete_porcentaje,
     })
+
+@login_required
+def editar_cliente_presupuesto(request, presupuesto_id):
+    presupuesto = get_object_or_404(Presupuesto, numero=presupuesto_id)
+
+    if request.method == 'POST':
+        nuevo_cliente = (request.POST.get('cliente') or '').strip()
+
+        if not nuevo_cliente:
+            messages.error(request, "El nombre del cliente no puede estar vacío.")
+            return redirect('detalle_presupuesto', presupuesto_id=presupuesto.numero)
+
+        presupuesto.cliente = nuevo_cliente
+        presupuesto.save(update_fields=['cliente'])
+        messages.success(request, "Nombre del cliente actualizado correctamente.")
+
+    return redirect('detalle_presupuesto', presupuesto_id=presupuesto.numero)
 
 
 
@@ -439,3 +480,52 @@ def cambiar_desperdicio_presupuesto(request, presupuesto_id):
         return JsonResponse({'status': 'success', 'message': 'Desperdicio actualizado correctamente.'})
 
     return JsonResponse({'status': 'error', 'message': 'Método no permitido.'}, status=405)
+
+
+@login_required
+def configurar_porcentajes(request):
+    """
+    Vista para gestionar la configuración de porcentajes.
+    Permite crear, editar y activar configuraciones.
+    """
+    if request.method == 'POST':
+        import json
+        
+        # Verificar si es una solicitud AJAX para crear/editar
+        if request.headers.get('Content-Type') == 'application/json':
+            data = json.loads(request.body)
+            
+            # Crear nueva configuración
+            if 'action' in data and data['action'] == 'create':
+                configuracion = PorcentajeConfiguracion.objects.create(
+                    nombre=data.get('nombre'),
+                    mano_obra_porcentaje=Decimal(data.get('mano_obra_porcentaje', 40)),
+                    venta_porcentaje=Decimal(data.get('venta_porcentaje', 30)),
+                    utilidad_porcentaje=Decimal(data.get('utilidad_porcentaje', 85)),
+                    flete_porcentaje=Decimal(data.get('flete_porcentaje', 12)),
+                    activo=data.get('activo', False)
+                )
+                return JsonResponse({
+                    'status': 'success', 
+                    'message': 'Configuración creada exitosamente.',
+                    'id': configuracion.id
+                })
+            
+            # Activar configuración
+            elif 'action' in data and data['action'] == 'activate':
+                configuracion_id = data.get('configuracion_id')
+                configuracion = get_object_or_404(PorcentajeConfiguracion, id=configuracion_id)
+                configuracion.activo = True
+                configuracion.save()  # El método save() del modelo se encarga de desactivar las demás
+                return JsonResponse({'status': 'success', 'message': 'Configuración activada exitosamente.'})
+               
+        else:
+            # Procesamiento de formulario tradicional (si se implementara)
+            pass
+    
+    # Obtener todas las configuraciones para mostrar
+    configuraciones = PorcentajeConfiguracion.objects.all().order_by('-fecha_creacion')
+    
+    return render(request, 'configurar_porcentajes.html', {
+        'configuraciones': configuraciones,
+    })

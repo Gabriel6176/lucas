@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Configurar Porcentajes{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h2 class="mb-4">Configuración de Porcentajes</h2>
+            
+            <!-- Botón para agregar nueva configuración -->
+            <div class="mb-4">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalNuevaConfiguracion">
+                    <i class="bi bi-plus-circle"></i> Nueva Configuración
+                </button>
+            </div>
+
+            <!-- Tabla de configuraciones existentes -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Configuraciones de Porcentajes</h5>
+                </div>
+                <div class="card-body">
+                    {% if configuraciones %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Mano de Obra</th>
+                                        <th>Venta</th>
+                                        <th>Utilidad</th>
+                                        <th>Flete</th>
+                                        <th>Estado</th>
+                                        <th>Fecha Creación</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for config in configuraciones %}
+                                    <tr class="{% if config.activo %}table-success{% endif %}">
+                                        <td>
+                                            <strong>{{ config.nombre }}</strong>
+                                            {% if config.activo %}
+                                                <span class="badge bg-success ms-2">ACTIVA</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ config.mano_obra_porcentaje }}%</td>
+                                        <td>{{ config.venta_porcentaje }}%</td>
+                                        <td>{{ config.utilidad_porcentaje }}%</td>
+                                        <td>{{ config.flete_porcentaje }}%</td>
+                                        <td>
+                                            {% if config.activo %}
+                                                <span class="text-success">
+                                                    <i class="bi bi-check-circle-fill"></i> Activa
+                                                </span>
+                                            {% else %}
+                                                <span class="text-muted">Inactiva</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ config.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                                        <td>
+                                            {% if not config.activo %}
+                                                <button type="button" class="btn btn-sm btn-outline-success activate-config" 
+                                                        data-config-id="{{ config.id }}" data-config-name="{{ config.nombre }}">
+                                                    <i class="bi bi-play-fill"></i> Activar
+                                                </button>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            No hay configuraciones creadas aún. Crea una nueva configuración para comenzar.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Información sobre cómo funcionan los porcentajes -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Información sobre los Porcentajes</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Mano de Obra</h6>
+                            <p class="text-muted small">Se aplica sobre el subtotal de insumos con tipo_insumo_id=1</p>
+                            
+                            <h6>Venta</h6>
+                            <p class="text-muted small">Se aplica sobre el subtotal de insumos con tipo_insumo_id=1</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Utilidad</h6>
+                            <p class="text-muted small">Se aplica sobre el subtotal de insumos con tipo_insumo_id=1</p>
+                            
+                            <h6>Flete</h6>
+                            <p class="text-muted small">Se aplica sobre el subtotal de insumos con tipo_insumo_id en [1,3,4,5,6,7]</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para nueva configuración -->
+<div class="modal fade" id="modalNuevaConfiguracion" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nueva Configuración de Porcentajes</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formNuevaConfiguracion">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre de la configuración</label>
+                        <input type="text" class="form-control" id="nombre" name="nombre" required>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="mano_obra_porcentaje" class="form-label">Mano de Obra (%)</label>
+                                <input type="number" class="form-control" id="mano_obra_porcentaje" name="mano_obra_porcentaje" 
+                                       value="40" min="0" max="100" step="0.1" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="venta_porcentaje" class="form-label">Venta (%)</label>
+                                <input type="number" class="form-control" id="venta_porcentaje" name="venta_porcentaje" 
+                                       value="30" min="0" max="100" step="0.1" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="utilidad_porcentaje" class="form-label">Utilidad (%)</label>
+                                <input type="number" class="form-control" id="utilidad_porcentaje" name="utilidad_porcentaje" 
+                                       value="85" min="0" max="100" step="0.1" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="flete_porcentaje" class="form-label">Flete (%)</label>
+                                <input type="number" class="form-control" id="flete_porcentaje" name="flete_porcentaje" 
+                                       value="12" min="0" max="100" step="0.1" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="activo" name="activo">
+                            <label class="form-check-label" for="activo">
+                                Activar esta configuración (desactivará las demás)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Crear Configuración</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Formulario para nueva configuración
+    document.getElementById('formNuevaConfiguracion').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = {
+            action: 'create',
+            nombre: document.getElementById('nombre').value,
+            mano_obra_porcentaje: document.getElementById('mano_obra_porcentaje').value,
+            venta_porcentaje: document.getElementById('venta_porcentaje').value,
+            utilidad_porcentaje: document.getElementById('utilidad_porcentaje').value,
+            flete_porcentaje: document.getElementById('flete_porcentaje').value,
+            activo: document.getElementById('activo').checked
+        };
+        
+        fetch('{% url "configurar_porcentajes" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al crear la configuración');
+        });
+    });
+    
+    // Botones para activar configuración
+    document.querySelectorAll('.activate-config').forEach(button => {
+        button.addEventListener('click', function() {
+            const configId = this.dataset.configId;
+            const configName = this.dataset.configName;
+            
+            if (confirm('¿Activar la configuración "' + configName + '"?')) {
+                fetch('{% url "configurar_porcentajes" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        action: 'activate',
+                        configuracion_id: configId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al activar la configuración');
+                });
+            }
+        });
+    });
+});
+</script>
+
+<style>
+.table-success {
+    background-color: rgba(25, 135, 84, 0.1) !important;
+}
+.activate-config {
+    transition: all 0.2s;
+}
+.activate-config:hover {
+    transform: scale(1.05);
+}
+</style>
+{% endblock %}

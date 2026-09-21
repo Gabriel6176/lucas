@@ -22,6 +22,13 @@ urlpatterns = [
     # Ruta para ver o editar un presupuesto existente
     path('presupuesto/<int:presupuesto_id>/', presupuestos_views.detalle_presupuesto, name='detalle_presupuesto'),
 
+    # Editar nombre del cliente del presupuesto
+    path(
+        'presupuesto/<int:presupuesto_id>/editar_cliente/',
+        presupuestos_views.editar_cliente_presupuesto,
+        name='editar_cliente_presupuesto',
+    ),
+
     # Editar item
     path('item/<int:item_id>/editar/', presupuestos_views.editar_item, name='editar_item'),
 
@@ -41,6 +48,8 @@ urlpatterns = [
 
     path('presupuesto/<int:presupuesto_id>/cambiar_desperdicio/', presupuestos_views.cambiar_desperdicio_presupuesto, name='cambiar_desperdicio_presupuesto'),
 
+    # Configuración de porcentajes
+    path('configurar-porcentajes/', presupuestos_views.configurar_porcentajes, name='configurar_porcentajes'),
 
     
 ]
