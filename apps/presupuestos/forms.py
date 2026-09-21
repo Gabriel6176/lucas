@@ -13,8 +13,9 @@ class PresupuestoForm(forms.ModelForm):
 class ItemForm(forms.ModelForm):
     class Meta:
         model = Item
-        fields = ['cantidad', 'ancho', 'alto', 'ancho_hoja', 'alto_lama', 'tipo', 'color', 'revestimiento', 'desperdicio', 'mosquitero']
+        fields = ['nombre_item', 'cantidad', 'ancho', 'alto', 'ancho_hoja', 'alto_lama', 'tipo', 'color', 'revestimiento', 'desperdicio', 'mosquitero']
         widgets = {
+            'nombre_item': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 25}),
             'cantidad': forms.NumberInput(attrs={'class': 'form-control'}),
             'ancho': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'alto': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),

@@ -57,6 +57,7 @@
                     <tr>
                         <th scope="col">#</th>
                         <th scope="col">Tipo</th>
+                        <th scope="col">Nombre ítem</th>
                         <th class="text-center" scope="col">Cantidad</th>
                         <th class="text-center" scope="col">Ancho</th>
                         <th class="text-center" scope="col">Alto</th>
@@ -81,6 +82,7 @@
                         <tr>
                             <th scope="row">{{ forloop.counter }}</th>
                             <td>{{ entry.item.tipo.detalle }}</td>
+                            <td>{{ entry.item.nombre_item }}</td>
                             <td class="text-center">{{ entry.item.cantidad }}</td>
                             <td class="text-center">{{ entry.item.ancho }}</td>
                             <td class="text-center">{{ entry.item.alto }}</td>

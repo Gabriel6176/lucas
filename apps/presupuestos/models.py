@@ -159,6 +159,7 @@ class Item(models.Model):
     Modelo para los ítems asociados a cada presupuesto.
     """
     presupuesto = models.ForeignKey(Presupuesto, related_name='items', on_delete=models.CASCADE)  # Relación con el presupuesto
+    nombre_item = models.CharField(max_length=25, blank=True, default='')  # Nombre identificativo del ítem
     cantidad = models.PositiveIntegerField()  # Cantidad del ítem
     ancho = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)  # Ancho en unidades
     alto = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)  # Alto en unidades

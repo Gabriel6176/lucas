@@ -11,6 +11,12 @@
                 {% csrf_token %}
                 <div class="row">
                     <div class="col-md-6">
+                        <!-- Nombre del ítem -->
+                        <div class="form-group mb-3">
+                            <label for="nombre_item">Nombre del ítem</label>
+                            {{ form.nombre_item }}
+                        </div>
+
                         <!-- Cantidad -->
                         <div class="form-group mb-3">
                             <label for="cantidad">Cantidad</label>
